@@ -1,0 +1,40 @@
+// article template
+// BSXml v2.2 @BlueSky
+div .article-container #article {
+    div .header-container #banner {
+        ~ url {{$article.banner_link || ''}}
+        div .header {
+            div .title-container {
+                div .title #title {
+                    {{$article.title}}
+                }
+            }
+            div .keywords {
+                @for({{$article.keywords}}) {
+                    div .keyword {
+                        {{$item}}
+                    }
+                }
+            }
+            div .info-container {
+                div .info {
+                    Released：{{$article.release_date}}
+                }
+                div .info {
+                    Updated：{{$article.update_date}}
+                }
+                div .info {
+                    Version：{{$article.version}}
+                }
+            }
+        }
+        div .author {
+            {{$article.author}}
+        }
+    }
+    div .content-container {
+        div .content #content {
+            ~ url {{$article.md_link}}
+        }
+    }
+}

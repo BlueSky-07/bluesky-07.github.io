@@ -1,0 +1,275 @@
+html,
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.article-container {
+  background-color: #eee;
+}
+
+.article-container .header-container {
+  min-width: 20em;
+  border-bottom-left-radius: 0.3em;
+  border-bottom-right-radius: 0.3em;
+  box-shadow: 0 0.5em 1em #333;
+  margin: auto;
+  padding: 1.5em 1.5em 1em 0;
+  background: linear-gradient(to top right, #111, #333);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position:center;
+  position: relative;
+  z-index: 10;
+}
+
+.header-container .header {
+  padding: 2em;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+.header .title-container {
+  background-color: rgba(0, 0, 0, 0.25);
+  position: relative;
+  left: -2em;
+  margin-right: -2em;
+  padding: 2em;
+}
+
+.header .title {
+  font-size: 2em;
+  font-weight: lighter;
+  text-align: left;
+  color: #fff;
+  font-family: 'Consolas', 'Monaco', 'Arial';
+}
+
+.header .keywords {
+  text-align: right;
+  min-width: 18em;
+  padding: 0.1em 0.2em;
+  margin-top: 1em;
+}
+
+.keywords .keyword {
+  font-size: 0.75em;
+  font-weight: bolder;
+  padding: 0.15em 0.5em;
+  border-radius: 0.5em;
+  display: inline-block;
+  margin: 0.5em;
+  margin-left: 0;
+  color: #000;
+  background: rgba(255, 255, 255, 0.5);
+  font-family: 'Consolas', 'Monaco', 'Arial';
+}
+
+.keywords .keyword:hover {
+  cursor: pointer;
+  color: #000;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.header .info-container {
+  width: max-content;
+  text-align: left;
+  font-size: 0.85em;
+  font-weight: bolder;
+  color: #ddd;
+  background-color: rgba(0, 0, 0, 0.25);
+  margin-top: 1em;
+  padding: 0.5em 1em;
+  font-family: 'Consolas', 'Monaco', 'Arial';
+}
+
+.info-container .info {
+  margin: 0.35em 0;
+}
+
+.header-container .author {
+  height: 0;
+  width: max-content;
+  font-size: 2em;
+  font-weight: bolder;
+  color: rgba(255, 255, 255, 0.36);
+  position: relative;
+  float: right;
+  bottom: 1.25em;
+  right: 0;
+  font-family: 'Consolas', 'Monaco', 'Arial';
+}
+
+.article-container .content-container {
+  min-width: 20em;
+  width: 90%;
+  z-index: 1;
+  margin: auto;
+}
+
+.content-container .content {
+  min-height: 50em;
+  padding: 2em;
+  margin: auto;
+  background-color: #fff;
+  position: relative;
+  top: -1em;
+  box-shadow: 0 0 0.05em #ccc;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+  color: #333;
+  letter-spacing: 0.05em;
+}
+
+.content p {
+  font-size: 1em;
+  line-height: 1.75em;
+  color: #333;
+}
+
+.content * code {
+  background-color: #23241f;
+  border-radius: 0.25em;
+  padding: 0.15em 0.35em;
+  margin: 0 0.25em;
+}
+
+.content a {
+  color: #0087ff;
+  font-weight: bold;
+  text-shadow: none;
+  text-decoration: none;
+  border-bottom: dotted 0.05em #0087ff;
+}
+
+.content a:hover {
+  color: #ff3c00;
+  border-bottom: solid 0.05em #ff0000;
+}
+
+.content img {
+  display: block;
+  margin: 1em auto;
+  max-width: 90%;
+  border-radius: 0.25em;
+  border: solid #fff 0.25em;
+  box-shadow: 0 0 0.05em #000;
+}
+
+.content img:hover {
+  box-shadow: 0 0 0.25em #000;
+  cursor: pointer;
+}
+
+.content blockquote {
+  background-color: #eee;
+  max-width: 30em;
+  margin: 1.5em auto;
+  padding: 0.75em 1.5em;
+  box-shadow: 0 0 0.05em #777;
+  border-bottom-right-radius: 1em;
+}
+
+.content pre {
+  min-width: 15em;
+  background-color: #23241f;
+  border-radius: 0.35em;
+  box-shadow: -0.15em 0.05em 0.25em #111;
+  padding: 0.5em;
+  margin: auto;
+  overflow-x: auto;
+}
+
+.content pre code::-webkit-scrollbar {
+  height: 0.36em;
+  background-color: #000;
+}
+
+.content pre code::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.36);
+  border-radius: 0.5em;
+  background-color: black;
+}
+
+.content pre code::-webkit-scrollbar-thumb {
+  border-radius: 0.5em;
+  box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.36);
+  background-color: #ccc;
+}
+
+.content table {
+  background-color: #eee;
+  padding: 0.5em;
+  margin: 1.5em auto;
+  box-shadow: 0 0 0.05em #000;
+}
+
+table thead {
+  background-color: #ddd;
+}
+
+table tbody {
+  background-color: #fff;
+}
+
+tr th, tr td {
+  border: #000 solid 0.05em;
+  text-align: center;
+  padding: 0.5em;
+}
+
+input:checked{
+  color: #0f0;
+}
+
+code {
+  font-size: 1em;
+  line-height: 1.75em;
+  color: #f9f9f9;
+  text-shadow: 0 0 0.25em #000;
+  font-weight: lighter;
+  font-family: 'Consolas', 'Monaco', 'Arial';
+  margin: 0;
+}
+
+.header .title::selection {
+  background-color: #000;
+}
+
+.keywords .keyword::selection {
+  background-color: #000;
+  color: #fff;
+}
+
+.info-container .info::selection,
+.header-container .author::selection {
+  background-color: #ccc;
+  color: #000;
+}
+
+.content *::selection{
+  background-color: #333;
+  color: #fff;
+}
+
+code::selection, code *::selection {
+  background-color: #ff911c !important;
+  color: #eee !important;
+  text-shadow: 0 0 0.25em #333 !important;
+}
+
+img::selection {
+  background-color: #74b0e4 !important;
+}
+
+@media screen and (min-width: 30em) {
+  .header-container .author {
+    font-size: 3em;;
+  }
+}

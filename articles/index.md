@@ -1,10 +1,11 @@
-# Welcome to iHint-Pages
+## BlueSky's ES 6
+---
+### [BSModule](?BSModule)
 
-### pages:
+一个关于页面组件载入的简单实现，功能包含：
 
-1. [index](?index)
-1. *wait for more pages*
+>- 模块载入
+>- 单页面路由
+>- 多页面数据传输
 
-### articles:
-
-1. *wait for more articles*
+<small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js) 上查看源码</small>

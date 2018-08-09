@@ -1,8 +1,13 @@
 // article template
 // BSXml v2.2 @BlueSky
 div .article-container #article {
-    div .header-container #banner {
-        ~ url {{$article.banner_link || ''}}
+    div .header-container #header {
+        ~ url {{$article.banner_link}}
+        @if({{$article.banner_from}}) {
+            div .banner_from #banner_from {
+                {{$article.banner_from}}
+            }
+        }
         div .header {
             div .title-container {
                 div .title #title {

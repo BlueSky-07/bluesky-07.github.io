@@ -139,7 +139,7 @@ body {
 
 .content p {
   font-size: 1em;
-  line-height: 1.75em;
+  line-height: 1.85em;
   color: #333;
 }
 
@@ -183,6 +183,12 @@ body {
   border-bottom-right-radius: 1em;
 }
 
+ol li,
+ul li {
+  margin: 1em 0.5em;
+  line-height: 1.85em;
+}
+
 .content pre {
   min-width: 15em;
   background-color: #23241f;
@@ -193,10 +199,15 @@ body {
   overflow-x: auto;
 }
 
-p code {
+pre code {
+  margin: 0;
+}
+
+* code {
   background-color: #23241f;
   border-radius: 0.25em;
-  padding: 0.15em 0.35em;
+  margin: 0 0.5em;
+  padding: 0 0.35em;
   display: inline-block;
 }
 
@@ -212,7 +223,6 @@ code {
   text-shadow: 0 0 0.25em #000;
   font-weight: lighter;
   font-family: 'Consolas', 'Monaco', 'Arial' !important;
-  margin: 0;
 }
 
 code * {
@@ -294,7 +304,10 @@ img::selection {
 @media screen and (min-width: 30em) {
   .header-container .author {
     font-size: 3em;
-    ;
+  }
+  
+  .content pre {
+    width: max-content;
   }
 }
 

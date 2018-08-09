@@ -6,7 +6,8 @@ const $$ = document.querySelectorAll.bind(document)
 
 BSXml.start(['loading'])
 
-const article_url = location.search.slice(1)
+const json = location.search.slice(1)
+const article_url = `articles/${json}.json`
 BSFetch.get(article_url)
 	.then(
 		article => {
@@ -15,7 +16,8 @@ BSFetch.get(article_url)
 					article
 				},
 				next() {
-					const md_link = $('#content').getAttribute('url')
+					const md = $('#content').getAttribute('url')
+					const md_link = `articles/${md}.md`
 					BSFetch.get(md_link, {
 						restype: 'text'
 					}).then(md => {
@@ -43,4 +45,5 @@ BSFetch.get(article_url)
 	.catch(
 		e => {
 			$('#loading').innerHTML = 'fail to load, open console for debugging'
+			throw e
 		})

@@ -1,10 +1,10 @@
 {
-  "md_link":"articles/index.md",
+  "md_link":"index",
   "title":"iHint-Pages",
   "author":"BlueSky",
   "release_date":"2018/8/8",
-  "update_date":"2018/8/8",
-  "version":"1",
+  "update_date":"2018/8/9",
+  "version":"2",
   "banner_link":"banners/default.jpg",
   "keywords":[
     "ihint.me", "github.com/BlueSky-07"

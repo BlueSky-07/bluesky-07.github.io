@@ -2,7 +2,7 @@
 
 ### pages:
 
-1. [index](?articles/index.json)
+1. [index](?index)
 1. *wait for more pages*
 
 ### articles:

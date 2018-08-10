@@ -1,10 +1,10 @@
 # BSModule
 
-`Browser-Simple-Module`
-`v1.0`
 在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js) 上查看源码
 
-一个关于页面组件载入的简单实现，功能包含：
+`Browser-Simple-Module` `v1.0` 
+
+这是一个关于页面组件载入的简单实现。用到了很多 ES 6 的特性，功能包含：
 
 - [模块载入](#1-)
 - [单页面模块间与多页面数据传输](#2-)
@@ -84,8 +84,10 @@ add_js('BSData', 'https://static.ihint.me/BSData.js', {
 ```
 
 **关于 ES6 的 动态 import()**
-1. 参考链接：[Dynamic_Imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#Dynamic_Imports)
-1. 目前还未被主流浏览器完全支持，上面的示例代码的最后一个的动态 **import()** 写法：
+1. 参考链接：
+>- [Dynamic_Imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#Dynamic_Imports) - *<small>developer.mozilla.org</small>*
+>- [import()](http://es6.ruanyifeng.com/#docs/module#import) - *<small>es6.ruanyifeng.com</small>*
+1. 目前还未被全部主流浏览器完全支持，支持的浏览器可以把上面的示例代码的最后一个的示例改成这样的动态 **import()** 写法：
 
 ```js
 // 可以在 Chrome 63 及以后版本中运行
@@ -101,10 +103,13 @@ import('https://static.ihint.me/BSData.js')
   console.log(e)
 })
 ```
+**ES6 Module 的载入**
+
+虽然我们暂时不能在引入一个 **ES6 Module** 后立即使用，但是我们仍然可以在引入的 **Module.js** 中通过`import ? from '?'`引入目标 **ES 6 Module**来使用它们。
 
 **模块化**
 
-为了将最终的所有功能最终向外输出一个模块，可以这样封装：
+为了将最终的所有功能最终向外输出一个 **ES6 Module**，可以这样封装：
 ```js
 class BSModule {
   static add_js(id, src, {callback = '', type = ''} = {}) {
@@ -131,6 +136,8 @@ export default BSModule
 ----
 
 ## 2. 单页面模块间与多页面数据传输
+
+
 
 ----
 

@@ -1,6 +1,6 @@
 # BSModule
 
-在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js) 上查看源码
+在 Github 上查看 [源码]((https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js)) [测试](https://github.com/BlueSky-07/ES-6/tree/master/static/test/BSModule)
 
 `Browser-Simple-Module` `v1.1` 
 
@@ -253,7 +253,7 @@ BSModule.dataStorage = {}
 1. `module_name`是模块名，与前文一致。
 1. `?data`是可选参数，表示传给即将引入模块所使用的值。
 
-ES6 的 **import 命令** 不会重复引入 **src** 相同的模块，执行时到重复引用时会使用第一次引入的模块。而且，ES6 模块是动态引用，并且不会缓存值，模块里面的变量绑定其所在的模块。根据这个原理，只需给 **BSModule** 添加一个静态变量`dataStorage`用来存储数据，在引入的模块中也引入 **BSModule**，就可以通过`BSModule.dataStorage[module_name]`来获取数据了。
+ES6 的 **import 命令** 不会重复引入 **src** 相同的模块，执行到重复引用时会使用第一次引入的模块。而且，ES6 模块是动态引用，并且不会缓存值，模块里面的变量绑定其所在的模块。根据这个原理，只需给 **BSModule** 添加一个静态变量`dataStorage`用来存储数据，在引入的模块中也引入 **BSModule**，就可以通过`BSModule.dataStorage[module_name]`来获取数据了。
 
 **参考资料**
 >- [ES6 模块与 CommonJS 模块的差异](http://es6.ruanyifeng.com/#docs/module-loader#ES6-%E6%A8%A1%E5%9D%97%E4%B8%8E-CommonJS-%E6%A8%A1%E5%9D%97%E7%9A%84%E5%B7%AE%E5%BC%82) - *<small>es6.ruanyifeng.com</small>*
@@ -473,3 +473,284 @@ BSModule.dataStorage = {}
 ----
 
 ## 3. 页面路由
+
+结合目前所实现的功能，可以通过地址`#`的变化引入不同的 **ES6 Module** 来实现一个简单的单页应用的路由功能。
+
+### 3.1 路径注册
+
+路由第一步，就是要确定有哪些“路”。通过将路径与访问该路径时需要引入的 **ES6 Module** 绑定，称之为“注册”。实现如下：
+```js
+class BSModule {
+  ......
+
+  register_router(path = '', module_name = {}) {
+    if (path[0] !== '/') {
+      throw new Error('path must start with /')
+    }
+    if (!this.routers) {
+      this.routers = {}
+    }
+    const hash = md5(path)
+    this.routers[hash] = {path, module_name}
+    if (!BSModule.hashchange_event_registered) {
+      BSModule.hashchange_event_registered = true
+      window.onhashchange = () => {
+        this.apply_module()
+      }
+    }
+  }
+  
+  register_routers(routers = []) {
+    if (Array.isArray(routers)) {
+      for (const router of routers) {
+        if (Array.isArray(router)) {
+          const [path, module_name] = router
+          this.register_router(path, module_name)
+        } else if (router.path && router.module_name) {
+          const {path, module_name} = router
+          this.register_router(path, module_name)
+        } else {
+          throw new Error('item should be [path, module_name] or {path, module_name}')
+        }
+      }
+    } else {
+      throw new Error('routers should be an array')
+    }
+  }
+}
+```
+**说明**
+1. `path`为路径，`module_name`为该路径绑定的模块名。
+1. 同时写一个批量注册的方法，该方法识别`[path, module_name]`和`{path, module_name}`并将其路径信息注册。
+1. 规定合法路径以`/`开头，同时在存储时将路径序列化以便统一数据。
+1. 规定`module_name`必须和实际 **ES6 Module** 的 **.js** 文件同名，即不响应数据中的 `_src_` 值。
+1. 给当前实例化对象添加了一个属性`routers`用于存储路径与其绑定的模块名信息。
+1. 检测是否注册了地址`#`变化监听，若没有，则注册监听时间，并给 **BSModule** 添加一个静态属性`hashchange_event_registered`用于标识已注册监听事件。
+
+这样，接下来就可以通过`<a href='#/?'></a>`来响应页面的切换，以加载目标页面需要的 **Module**。但是这种切换方式利用了地址的变化来载入模块，所以此时的加载模式类似于不同页面间的模块载入，数据的传输需要拼接在地址的后面。
+
+### 3.2 修改地址方式载入模块和传输数据
+
+为了复用之前的`apply_module( ... )`方法，需要做一些调整，同时不影响`auto()`的调用。代码：
+```js
+class BSModule {
+  ......
+
+  apply_module(module_name = '', is_current = false, is_router = false) {
+    if (!is_current) {
+      module_name = (location.hash.split('?')[0] || '').slice(1)
+      if (module_name.startsWith('/')) {
+        const path = module_name
+        try {
+          module_name = this.routers[md5(path)].module_name
+          is_router = true
+        } catch (e) {
+          throw new Error(`router for ${path} must be registered before apply`)
+        }
+      }
+      const raw_data = location.hash.slice(location.hash.split('?')[0].length + 1)
+      BSModule.dataStorage[module_name] = BSData.body_to_object(raw_data) || {}
+    }
+    if (module_name) {
+      BSModule.lastModuleName = module_name
+      if (is_router) {
+        delete BSModule.dataStorage[module_name]._src_
+      }
+      const src = BSModule.dataStorage[module_name]._src_ || module_name
+      this.add_module(module_name, {src})
+    }
+  }
+}
+```
+**说明**
+1. 新增了对于`#/`开头的识别，因为规定了路径必须以`/`开头，所以这样的地址将会被识别成 **path**。
+1. 识别到 **path** 之后尝试从路径信息集里获取其对应的模块名，同时将`_src_`属性删除。
+
+这样即可完成模块的载入。
+
+**调用示例**
+```html
+<body>
+  <div id="page">
+    <p>this is <span id="page_name">intro</span> page.</p>
+    <p><a href="#/">#/</a></p>
+    <p><a href="#/login">#/login</a></p>
+    <p><a href="#/?msg=msg%20set%20by%20link%20#/">#/?msg=msg%20set%20by%20link%20#/</a></p>
+    <p><a href="#/login?msg=msg%20set%20by%20link%20#/login">#/login?msg=msg%20set%20by%20link%20#/login</a></p>
+  </div>
+  <div id="data"></div>
+  <script type="module">
+    import BSModule from 'https://static.ihint.me/BSModule.js'
+    
+    const manager = new BSModule({
+      js_root: './'
+    })
+    
+    manager.register_routers([
+          ['/', 'index'],
+          ['/login', 'login']
+        ]
+    )
+    
+    manager.apply_module()
+  </script>
+</body>
+```
+```js
+// index.js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+document.querySelector('#page_name').innerHTML = 'index</a>'
+document.querySelector('#data').innerHTML = `data:${JSON.stringify(BSModule.dataStorage.index)}<br>`
+```
+```js
+// login.js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+document.querySelector('#page_name').innerHTML = 'login'
+document.querySelector('#data').innerHTML = `data:${JSON.stringify(BSModule.dataStorage.login)}<br>`
+```
+
+### 3.3 函数方式载入模块及数据传输
+
+上文说过，这样的方式切换页面会将数据拼接到地址后面才能传输，这样的话地址栏将会变得不太好看。考虑到大部分场景可能是单页应用，即不会切换 **.html**页面，所以可以写一个方法来完成页面的切换与数据的传输。代码：
+```js
+class BSModule {
+  ......
+
+  register_router(path = '', module_name = {}) {
+    if (path[0] !== '/') {
+      throw new Error('path must start with /')
+    }
+    if (!this.routers) {
+      this.routers = {}
+    }
+    const hash = md5(path)
+    this.routers[hash] = {path, module_name}
+    if (!BSModule.hashchange_event_registered) {
+      BSModule.hashchange_event_registered = true
+      window.onhashchange = () => {
+        if (BSModule.gotoPreventApplyAgain) {
+          BSModule.gotoPreventApplyAgain = false
+        } else {
+          this.apply_module()
+        }
+      }
+    }
+  }
+
+  goto(path = '', {data = {}} = {}) {
+    const hash = md5(path)
+    if (this.routers[hash]) {
+      BSModule.gotoPreventApplyAgain = true
+      const module_name = this.routers[hash].module_name
+      BSModule.dataStorage[module_name] = data
+      location.href = `${location.pathname}#${path}`
+      this.apply_module(module_name, true, true)
+    } else {
+      throw new Error(`${path} has not be registered`)
+    }
+  }
+}
+```
+**说明**
+1. 思路与上文的单页面多模块间数据传输一样，通过`BSModule.dataStorage`保存数据。
+1. 与之前不同的是，这次操作会改变地址，所以会响应之前的`onhashchange`事件，为了不让模块载入，用一个标记`BSModule.gotoPreventApplyAgain`标识，同时修改之前的注册事件来识别该标识。
+1. 注意：传入的`path`不需要在前面加`#`。
+
+**调用示例**
+```html
+<body>
+  <div id="page">
+    <p>this is <span id="page_name">intro</span> page.</p>
+    <p><button url="/">goto('/')</button></p>
+    <p><button url="/login">goto('/login')</button></p>
+  </div>
+  <div id="data"></div>
+  <script type="module">
+    import BSModule from 'https://static.ihint.me/BSModule.js'
+  
+    const manager = new BSModule({
+      js_root: './'
+    })
+    
+    manager.register_routers([
+          ['/', 'index'],
+          ['/login', 'login']
+        ]
+    )
+    
+    manager.apply_module()
+    
+    new Array().forEach.call(document.querySelectorAll('button'),
+      button => {
+        button.addEventListener('click', () => {
+          manager.goto(button.getAttribute('url'), {
+            data: {
+              msg: `msg set by goto('${button.getAttribute ('url')}')`
+            }
+          })
+        })
+      })
+  </script>
+</body>
+```
+```js
+// index.js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+document.querySelector('#page_name').innerHTML = 'index</a>'
+document.querySelector('#data').innerHTML = `data:${JSON.stringify(BSModule.dataStorage.index)}<br>`
+```
+```js
+// login.js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+document.querySelector('#page_name').innerHTML = 'login'
+document.querySelector('#data').innerHTML = `data:${JSON.stringify(BSModule.dataStorage.login)}<br>`
+```
+
+### 3.4 index.html#/ 跳转到 #/
+
+普通名称页面在上述处理后会变成形如`https://a.b.c/page.html#/login`这样的地址，但是如果是 **index.html** 可以省去 **index.html** 变成形如`https://a.b.c/#/login`这样的地址。对此，可以写一个方法来实现 “去**index.html**” 跳转。
+```js
+class BSModule {
+  ......
+
+  static prevent_index_html({filename = 'index.html', index_path = '/'} = {}) {
+    if (location.pathname.endsWith(filename)) {
+      location.href = `${location.pathname.slice(0, 0 - (filename.length))}#${index_path}`
+    }
+  }
+}
+```
+**说明**
+1. 考虑到有可能还有其他可能的文件名情况，如 **index.htm**，**index.jsp**，**index.php** 等等，所以设置一个参数`filename`，其默认值为 `'index.html'`。
+1. 默认跳转到 `#/`，所以在执行该方法之前必须注册一个路径为 `/` 的路由信息。
+
+**调用示例**
+```html
+<body>
+<script type="module">
+  import BSModule from 'https://static.ihint.me/BSModule.js'
+  
+  manager.register_routers([
+        ['/', 'index']
+      ]
+  )
+  
+  manager.apply_module()
+
+  BSModule.prevent_index_html()
+</script>
+</body>
+```
+```js
+// js/index.js
+......
+```
+
+### 3.5 在线测试页面
+
+>- [router.html](https://es6.ihint.me/BSModule_v1.1/router/router.html)
+>- [index.html](https://es6.ihint.me/BSModule_v1.1/router/index.html)

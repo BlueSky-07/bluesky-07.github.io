@@ -2,9 +2,11 @@
 
 在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js) 上查看源码
 
-`Browser-Simple-Module` `v1.0` 
+`Browser-Simple-Module` `v1.1` 
 
-这是一个关于页面组件载入的简单实现。用到了很多 ES 6 的特性，功能包含：
+这是一个关于页面组件载入的简单实现。该工具仅用作学习用途，如需在实际环境中使用还需要更多的测试与完善。
+
+**功能包含**
 
 - [模块载入](#1-)
 - [单页面模块间与多页面数据传输](#2-)
@@ -46,14 +48,15 @@ const add_js = (id, src, {callback = '', type = ''} = {}) => {
 }
 ```
 
-**参数说明：**
+**参数说明**
 
 1. `id`其实是一个非必要参数，但是为了需求的扩展，比如检查是否引入过某个 **.js** 文件的时候可能会需要 **id** 属性，现规定为强制需要的参数。
 1. `src`是目标 **.js** 文件的路径，可以是绝对路径，也可以是相对于当前 **.html** 页面的相对路径。
 1. `?callback`是可选参数，通过给这个即将添加的新`<script>`节点添加`onload`事件来在该 **.js** 文件载入完成后执行`callback`回调函数。
 1. `?type`是可选参数，若不设置默认引入普通 **.js**，若传入`type: 'module'`则会给这个即将添加的新`<script>`节点添加 **type** 属性为 **module**。
 
-**调用示例：**
+**调用示例**
+
 ```js
 // 引入与当前 html 同一路径的 a.js 文件
 add_js('a', 'a.js')
@@ -83,7 +86,8 @@ add_js('BSData', 'https://static.ihint.me/BSData.js', {
 })
 ```
 
-**关于 ES6 的 动态 import()**
+### 1.1 关于 ES6 的 动态 import()
+
 1. 参考链接：
 >- [Dynamic_Imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#Dynamic_Imports) - *<small>developer.mozilla.org</small>*
 >- [import()](http://es6.ruanyifeng.com/#docs/module#import) - *<small>es6.ruanyifeng.com</small>*
@@ -103,14 +107,15 @@ import('https://static.ihint.me/BSData.js')
   console.log(e)
 })
 ```
-**ES6 Module 的载入的新思路**
 
-虽然我们暂时不能通过 BSModule 在引入一个 **ES6 Module** 后立即使用这个模块，但是我们仍然可以在引入的 **import.js** 中通过`import ? from 'target.js'`引入目标 **ES 6 Module**来使用它们。示例：
+### 1.2 ES6 Module 的载入的新思路
+
+虽然暂时不能通过 BSModule 在引入一个 **ES6 Module** 后立即使用这个模块，但是仍然可以在引入的 **import.js** 中通过`import ? from 'target.js'`引入目标 **ES6 Module**来使用它们。示例：
 ```html
 <!--index.html-->
 <body>
   <script>
-    const add_js = (id, src, {callback = '', type = ''} = {}) => {
+    const add_js = ( ... ) => {
       ......
     }
     add_js('import', 'import.js', {
@@ -127,7 +132,7 @@ import BSData from 'https://static.ihint.me/BSData.js'
 console.log(BSData.object_to_json({a: 1, b: 2})) // OK
 ```
 
-**模块化**
+### 1.3 BSModule 模块化封装
 
 为了将最终的所有功能最终向外输出一个 **ES6 Module**，可以这样封装：
 ```js
@@ -138,7 +143,7 @@ class BSModule {
 }
 export default BSModule
 ```
-现在，只能通过 ES 6 的模块 **import** 语句来使用了：
+现在，只能通过 ES6 的模块 **import** 语句来使用了：
 ```html
 <body>
   <script type="module">
@@ -157,7 +162,313 @@ export default BSModule
 
 ## 2. 单页面模块间与多页面数据传输
 
+### 2.1 准备工作
 
+考虑到 **.js** 文件可能所在路径各不相同，以下所有方法全部是非静态的，即需要实例化一个 **BSModule** 后才能调用。
+```js
+class BSModule {
+  constructor({id_prefix = 'js_module_', js_root = 'js/', emptyjs = 'empty.js'} = {}) {
+    this.id_prefix = id_prefix
+    this.js_root = js_root
+    this.emptyjs = `${js_root}${emptyjs}`
+  }
+
+  static add_js( ... ) { ...... }
+}
+```
+当然，`add_js()`方法是通过传入值进行操作的，所以不需要实例化就能使用，使用时直接调用静态方法：`BSModule.add_js(...)`。
+
+**参数说明**
+
+1. `?id_prefix`是可选参数，表示所有新`<script>`标签的 **id** 属性前缀。默认值：`'js_module_'`。
+1. `?js_root`是可选参数，表示该 **BSModule** 实例化对象所引入的 **.js** 文件的根路径。该跟路径可以是绝对路径，也可以是相对于当前 **.html** 页面的相对路径。默认值：`'js/'`。
+1. `?emptyjs`是可选参数，表示一个空的 **.js** 文件的文件名。这个空 **.js** 文件会在同时引入多个 **.js** 时后引入，然后执行这次批量引入的回调函数。传入值为相对于 **js_root** 路径的完整文件名。默认值：`'empty.js'`。
+
+**empty.js 文件示例**
+```js
+// this .js is used to call the callback function after importing new modules
+```
+
+**调用示例**
+```js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+const manager = new BSModule({
+  id_prefix: 'test_',
+  js_root: 'static/js/',
+  emptyjs: 'empty.js'
+})
+```
+
+### 2.2 封装 ES6 Module 类型 **.js** 引入
+
+给 **BSModule** 加两个方法即可：
+```js
+class BSModule {
+  constructor( ... ) { ...... }
+  static add_js( ... } = {}) { ...... }
+
+  add_module(name = '', {src = '', callback = ''} = {}) {
+    BSModule.add_js(`${this.id_prefix}${name}`, `${this.js_root}${src || name}.js`, {callback, type: 'module'})
+  }
+  
+  add_modules(modules = [], callback = '') {
+    for (const module of modules) {
+      for (const {name, src} of module) {
+        this.add_module(name, {src})
+      }
+    }
+    BSModule.add_js(`${this.id_prefix}callback`, this.emptyjs, {callback, type: 'module'})
+  }
+}
+```
+
+**参数说明**
+
+1. `name`是模块名，获取数据时会用到，使用时需要确保值唯一，否则新模块的数据会覆盖之前模块的数据。
+1. `?src`是可选参数，表示这个模块的 **.js** 路径，无需后缀。若未设置，则按上述的`name`值引入。
+1. `?callback`是可选参数，与 **add_js()** 效果相同。同样，不能在回调函数里使用引入模块里的任何变量、函数。
+1. `modules`是一个数组，由上述`{name: '?', src: '?'}`构成的对象组成。
+
+### 2.3 同一页面模块的引入与数据传输
+
+通过之前的准备工作，现在的 **BSModule** 可以支持引入别的模块了。上文说过，虽然暂时不能使用 [动态 import()](#1-1-es6-import-) 来访问引入模块的变量和函数，但是也提到了一个 [新思路](#1-2-es6-module-)，参照这个新思路，也可以尝试向引入的模块传值。
+
+```js
+class BSModule {
+  ......
+
+  my_import(module_name = '', {data = {}} = {}) {
+    BSModule.dataStorage[module_name] = data
+    BSModule.lastModuleName = module_name
+    const src = BSModule.dataStorage[module_name]._src_ || module_name
+    this.add_module(module_name, {src})
+  }
+}
+BSModule.dataStorage = {}
+```
+
+**参数说明**
+
+1. `module_name`是模块名，与前文一致。
+1. `?data`是可选参数，表示传给即将引入模块所使用的值。
+
+ES6 的 **import 命令** 不会重复引入 **src** 相同的模块，执行时到重复引用时会使用第一次引入的模块。而且，ES6 模块是动态引用，并且不会缓存值，模块里面的变量绑定其所在的模块。根据这个原理，只需给 **BSModule** 添加一个静态变量`dataStorage`用来存储数据，在引入的模块中也引入 **BSModule**，就可以通过`BSModule.dataStorage[module_name]`来获取数据了。
+
+**参考资料**
+>- [ES6 模块与 CommonJS 模块的差异](http://es6.ruanyifeng.com/#docs/module-loader#ES6-%E6%A8%A1%E5%9D%97%E4%B8%8E-CommonJS-%E6%A8%A1%E5%9D%97%E7%9A%84%E5%B7%AE%E5%BC%82) - *<small>es6.ruanyifeng.com</small>*
+
+**调用示例**
+
+```html
+<!--index.html-->
+<body>
+  <script type="module">
+    import BSModule from 'https://static.ihint.me/BSModule.js'
+
+    const manager = new BSModule({
+      js_root: './'
+    })
+
+    // https://static.ihint.me/BSModule.js 里没有 my_import() 方法
+    // 如需运行此处代码先替换成 auto，这是一个改进版方法，会在下文中说明
+    // manager.auto('test', {
+    manager.my_import('test', {
+      data: {
+        msg: 'this msg set from html'
+      }
+    })
+  </script>
+</body>
+```
+
+```js
+// test.js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+console.log(`imported a module named: ${BSModule.lastModuleName}`)
+console.log(`data received: ${BSModule.dataStorage[BSModule.lastModuleName]}`)
+```
+
+**运行结果**
+
+![结果](https://i.loli.net/2018/08/10/5b6d46e4a1d59.png)
+
+**src 设置**
+
+也可以给传入的模块的数据中设置`_src_`值，它表示实际 **.js** 文件与模块名不同，在引入时会使用这个`_src_`值。参考上文 [此处](#2-2-es6-module-js-)。
+
+**调用示例**
+
+```html
+<!--index.html-->
+<body>
+  <script type="module">
+    import BSModule from 'https://static.ihint.me/BSModule.js'
+
+    const manager = new BSModule({
+      js_root: './'
+    })
+
+    // https://static.ihint.me/BSModule.js 里没有 my_import() 方法
+    // 如需运行此处代码先替换成 auto，这是一个改进版方法，会在下文中说明
+    // manager.auto('any_name_you_like', {
+    manager.my_import('any_name_you_like', {
+      data: {
+        msg: 'this msg set from html',
+        _src_: 'test'
+      }
+    })
+  </script>
+</body>
+```
+
+```js
+// test.js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+console.log(`imported a module named: ${BSModule.lastModuleName}`)
+console.log(`data received: ${BSModule.dataStorage[BSModule.lastModuleName]}`)
+```
+
+**运行结果**
+
+![结果](https://i.loli.net/2018/08/10/5b6d471c5b5e6.png)
+
+### 2.4 不同页面模块的数据传输
+
+向另一个页面传输数据，可以通过地址拼接完成。剩下的处理与在同一页面无异。
+
+```js
+class BSModule {
+  ......
+
+  to_another_page(module_name = '', htmlpath = '', {data = {}} = {}) {
+    const current_htmlpath = location.pathname
+    const transferring_data = Object.assign(
+      data, {
+        _from_: current_htmlpath
+      }
+    )
+    location.href = `${htmlpath}#${module_name}?${BSData.object_to_body(transferring_data)}`
+  }
+
+  apply_module() {
+    module_name = (location.hash.split('?')[0] || '').slice(1)
+    const raw_data = location.hash.slice(location.hash.split('?')[0].length + 1)
+    BSModule.dataStorage[module_name] = BSData.body_to_object(raw_data) || {}
+    BSModule.lastModuleName = module_name
+    const src = BSModule.dataStorage[module_name]._src_ || module_name
+    this.add_module(module_name, {src})
+  }
+}
+BSModule.dataStorage = {}
+```
+
+**参数说明**
+1. `htmlpath`表示目的 **.html** 路径。
+
+在出发页调用`to_another_page( ... )`，在目的页调用`apply_module()`即可完成模块的引用和数据的传输。
+
+**调用示例**
+```html
+<!--index.html-->
+<body>
+  <script type="module">
+    import BSModule from 'https://static.ihint.me/BSModule.js'
+
+    const manager = new BSModule({
+      js_root: './'
+    })
+
+    // https://static.ihint.me/BSModule.js 里没有 to_another_page() 方法
+    // 如需运行此处代码先替换成 auto，这是一个改进版方法，会在下文中说明
+    // manager.auto('test', {htmlpath: 'target.html',
+    manager.to_another_page('test', 'target.html', {
+      data: {
+        msg: 'this msg set from index.html'
+      }
+    })
+  </script>
+</body>
+```
+```html
+<!--target.html-->
+<body>
+  <script type="module">
+    import BSModule from 'https://static.ihint.me/BSModule.js'
+
+    const manager = new BSModule({
+      js_root: './'
+    })
+
+    manager.apply_module()
+  </script>
+</body>
+```
+```js
+// test.js
+import BSModule from 'https://static.ihint.me/BSModule.js'
+
+console.log(`imported a module named: ${BSModule.lastModuleName}`)
+console.log(`data received: ${BSModule.dataStorage[BSModule.lastModuleName]}`)
+```
+
+**结果**
+![结果](https://i.loli.net/2018/08/10/5b6d5112946ea.png)
+
+### 2.5 方法整合 auto()
+
+可以看到不论是否在同一页面，其核心原理都一样。可以将其整合成一个 **auto()** 方法，使其能够自动处理不同情况。
+
+```js
+class BSModule {
+  ......
+
+  auto(module_name = '', {htmlpath = '', data = {}} = {}) {
+    const current_htmlpath = location.pathname
+    const target_htmlpath = htmlpath || current_htmlpath
+    if (current_htmlpath === target_htmlpath) {
+      BSModule.dataStorage[module_name] = data
+      this.apply_module(module_name, true)
+    } else {
+      const transferring_data = Object.assign(
+          data, {
+            _from_: current_htmlpath
+          }
+      )
+      location.href = `${target_htmlpath}#${module_name}?${BSData.object_to_body(transferring_data)}`
+    }
+  }
+
+  apply_module(module_name = '', is_current = false) {
+    if (!is_current) {
+      module_name = (location.hash.split('?')[0] || '').slice(1)
+      const raw_data = location.hash.slice(location.hash.split('?')[0].length + 1)
+      BSModule.dataStorage[module_name] = BSData.body_to_object(raw_data) || {}
+    }
+    if (module_name) {
+      BSModule.lastModuleName = module_name
+      const src = BSModule.dataStorage[module_name]._src_ || module_name
+      this.add_module(module_name, {src})
+    }
+  }
+}
+BSModule.dataStorage = {}
+```
+在调用时无需多做修改，全部调用`manager.auto( ... )`即可。代码可参考上文的注释部分。
+
+### 2.6 在线测试页面
+
+- **场景 1** - 同一页面的不同模块：
+>[BSModule - same page, different modules](https://es6.ihint.me/BSModule_v1.1/samepage-diffmodules/BSModule.html)
+
+- **场景 2** - 同一页面的同一模块，但源文件不同：
+> [BSModule - same page, same module with different src](https://es6.ihint.me/BSModule_v1.1/samepage-diffsrcs/BSModule.html)
+
+- **场景 3** - 不同页面的数据传输：
+>- [1.html](https://es6.ihint.me/BSModule_v1.1/diffpage/1.html)
+>- [2.html](https://es6.ihint.me/BSModule_v1.1/diffpage/2.html)
 
 ----
 

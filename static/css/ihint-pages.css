@@ -182,17 +182,17 @@ body {
   margin: 1em auto;
   max-width: 90%;
   border-radius: 0.25em;
-  border: solid #000 0.05em;
+  border: dashed #000 0.025em;
 }
 
 .content img:hover {
-  box-shadow: 0 0 0.15em #444;
   cursor: pointer;
+  border: solid #000 0.025em;
 }
 
 .content img:active {
-  box-shadow: 0 0 0.25em #000;
   cursor: pointer;
+  border: solid #000 0.025em;
 }
 
 .content blockquote {
@@ -328,6 +328,18 @@ img::selection {
 }
 
 @media screen and (min-width: 30em) {
+  .content img {
+    border: none;
+    box-shadow: 0 0 0.25em #444;
+  }
+  .content img:hover {
+    border: none;
+    box-shadow: 0 0 0.25em #000;
+  }
+  .content img:active {
+    border: none;
+    cursor: pointer;
+  }
   .header-container .author {
     font-size: 3em;
   }

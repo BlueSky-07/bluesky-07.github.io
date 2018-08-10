@@ -103,9 +103,29 @@ import('https://static.ihint.me/BSData.js')
   console.log(e)
 })
 ```
-**ES6 Module 的载入**
+**ES6 Module 的载入的新思路**
 
-虽然我们暂时不能在引入一个 **ES6 Module** 后立即使用，但是我们仍然可以在引入的 **Module.js** 中通过`import ? from '?'`引入目标 **ES 6 Module**来使用它们。
+虽然我们暂时不能通过 BSModule 在引入一个 **ES6 Module** 后立即使用这个模块，但是我们仍然可以在引入的 **import.js** 中通过`import ? from 'target.js'`引入目标 **ES 6 Module**来使用它们。示例：
+```html
+<!--index.html-->
+<body>
+  <script>
+    const add_js = (id, src, {callback = '', type = ''} = {}) => {
+      ......
+    }
+    add_js('import', 'import.js', {
+      type: 'module'
+    })
+  </script>
+</body>
+```
+
+```js
+// import.js
+import BSData from 'https://static.ihint.me/BSData.js'
+
+console.log(BSData.object_to_json({a: 1, b: 2})) // OK
+```
 
 **模块化**
 

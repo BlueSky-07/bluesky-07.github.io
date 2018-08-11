@@ -1,6 +1,6 @@
 # iHint-Pages
 
-`release 0.1`
+`release 0.2`
 
 ## get your own github.io with iHint-Pages
 
@@ -12,8 +12,7 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 3. git clone `https://github.com/your-username/your-username.github.io`
 
-4. put all files from `iHint-Pages-latest-release.zip` into the 
-directory just cloned
+4. put all files from `iHint-Pages-latest-release.zip` into the directory just cloned
 
 5. change the details of `articles/index.json`, but do not rename it:
 ```text
@@ -64,3 +63,40 @@ directory just cloned
 4. do not forget add a link in `articles/index.md` for readers to access your article
 
 5. `git add .` -> `git commit -m'a new article'` -> `git push`
+
+## update log
+
+#### 2018/8/11 v0.2
+
+**NEW**
+1. animation of header's hide/show when scroll
+1. `Oops! Try refresh` will be showed when fail to load .md
+
+**CHANGE**
+1. header's width set as 90%, margin-top set as 1em when using desktop broswers
+
+**FIX**
+1. <del>NONE</del>
+
+**KNOWN BUG**
+1. Microsoft Edge will keep a empty block on the top when scroll down
+
+----
+#### 2018/8/11 v0.1
+
+**NEW**
+1. load config from `.json`, load page from `.md` accroding to url`?title`
+1. responsive UI, support most morden broswers of all platfroms, but not support any IE. ANY IE WILL NEVER BE CONSIDERED FOR SUPPORT.
+1. support code highlight, use theme of Monokai Sublime
+1. `Page Not Found` will be showed when fail to read `.json`
+1. other awesome features can be found after you installing it
+
+**CHANGE**
+1. <del>NONE</del>
+
+**FIX**
+1. <del>NONE</del>
+
+**KNOWN BUG**
+1. Microsoft Edge will always set the width of `pre` as full but not `max-content`
+1. scroll-bar style will only be effective on Chrome and Safari

@@ -1,11 +1,11 @@
 /**
  * iHint-Pages Style Sheet
  * @BlueSky
- * Version Alpha, 0.1
+ * Version Alpha, 0.2
  * https://github.com/BlueSky-07/bluesky-07.github.io
  */
 
-* {
+ * {
   font-family: Arial, Helvetica, sans-serif
 }
 
@@ -296,6 +296,26 @@ tr td {
   padding: 0.5em;
 }
 
+.footer {
+  user-select: none;
+  margin: 0.5em 0 1.5em;
+  text-align: center;
+  color: #bbb;
+  text-shadow: 0 0 0.05em #ccc;
+}
+
+.footer a {
+  text-decoration: none;
+  font-weight: bolder;
+  color: #aaa;
+  border-bottom: dashed #aaa 0.05em;
+}
+
+.footer *::selection {
+  background-color: #000;
+  color: #fff;
+}
+
 .header .title::selection {
   background-color: #eee;
   color: #333;
@@ -312,7 +332,9 @@ tr td {
   color: #000;
 }
 
-.content *::selection {
+.content *::selection,
+.footer::selection,
+.footer *::selection {
   background-color: #333;
   color: #fff;
 }
@@ -328,6 +350,10 @@ img::selection {
 }
 
 @media screen and (min-width: 30em) {
+  .article-container .header-container {
+    width: 90%;
+    margin: 1em auto 0;
+  }
   .content img {
     border: none;
     box-shadow: 0 0 0.25em #444;
@@ -349,27 +375,7 @@ img::selection {
   }
 }
 
-.footer {
-  user-select: none;
-  margin: 0.5em 0 1.5em;
-  text-align: center;
-  color: #bbb;
-  text-shadow: 0 0 0.05em #ccc;
-}
-
-.footer a {
-  text-decoration: none;
-  font-weight: bolder;
-  color: #aaa;
-  border-bottom: dashed #aaa 0.05em;
-}
-
-.footer *::selection {
-  background-color: #000;
-  color: #fff;
-}
-
-@keyframes fadeInDown {
+@keyframes content-fadeInDown {
   from {
     opacity: 0.5;
     transform: translate3d(0, -1em, 0);
@@ -380,6 +386,37 @@ img::selection {
   }
 }
 
+@keyframes header-fadeInDown {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes header-fadeOutUp {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+    height: 2em;
+    z-index: 0;
+  }
+}
+
 .content {
-  animation: fadeInDown 1s 0s 1 both
+  animation: content-fadeInDown 1s 0s 1 both;
+}
+
+.header-out {
+  animation: header-fadeOutUp 0.25s 0s 1 both;
+}
+
+.header-in {
+  animation: header-fadeInDown 0.25s 0s 1 both;
 }

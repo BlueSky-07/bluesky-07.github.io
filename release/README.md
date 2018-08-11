@@ -1,8 +1,6 @@
 # iHint-Pages
 
-release 0.1
-
-with support of BSXml, BSFetch
+`release 0.1`
 
 ## get your own github.io with iHint-Pages
 
@@ -26,7 +24,7 @@ directory just cloned
   "release_date": "2018/8/8",                                             // date of publishing index.md
   "update_date": "2018/8/8",                                              // date of last updating index.md
   "version": "8",                                                         // times of modifying index.md
-  "banner_link": "https://i.loli.net/2018/08/09/5b6c0db91bba5.jpg",               // url of picture in banner
+  "banner_link": "https://i.loli.net/2018/08/09/5b6c0db91bba5.jpg",       // url of picture in banner
   "banner_from": "JOHN TOWNER, https://unsplash.com/photos/p-rN-n6Miag",  // information of picture, like origin url, photographer, location etc.
   "keywords": [                                                           // keep [] if do not have keywords
     "ihint.me", "github.com/BlueSky-07"                                   // keywords, format of array
@@ -36,6 +34,8 @@ directory just cloned
 *Note: you have to delete all comments after the comma*
 
 6. use Markdown to write the page of index in `articles/index.json`
+
+7. `git add .` -> `git commit -m'index'` -> `git push`
 
 ## publish a new article
 
@@ -52,7 +52,7 @@ directory just cloned
   "release_date": "2018/8/8",                                             // date of publishing this article
   "update_date": "2018/8/8",                                              // date of last updating this article
   "version": "8",                                                         // times of modifying this article
-  "banner_link": "https://i.loli.net/2018/08/09/5b6c0db91bba5.jpg",               // url of picture in banner
+  "banner_link": "https://i.loli.net/2018/08/09/5b6c0db91bba5.jpg",       // url of picture in banner
   "banner_from": "JOHN TOWNER, https://unsplash.com/photos/p-rN-n6Miag",  // information of picture, like origin url, photographer, location etc.
   "keywords": [                                                           // keep [] if do not have keywords
     "ihint.me", "github.com/BlueSky-07"                                   // keywords, format of array
@@ -62,3 +62,5 @@ directory just cloned
 *Note: you have to delete all comments after the comma*
 
 4. do not forget add a link in `articles/index.md` for readers to access your article
+
+5. `git add .` -> `git commit -m'index'` -> `git push`

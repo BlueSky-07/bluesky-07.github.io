@@ -1,0 +1,7 @@
+div .footer {
+	Powered by
+	
+	a *"https://github.com/BlueSky-07/bluesky-07.github.io" {
+		iHint-Pages
+	}	
+}

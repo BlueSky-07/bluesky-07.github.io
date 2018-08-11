@@ -7,3 +7,7 @@ faster in China: [https://pages.ihint.me](https://pages.ihint.me)
 Powered By iHint-Pages
 
 with support of BSXml, BSFetch
+
+## get your own github.io with iHint-Pages
+
+please read [Installation Doc](/release)

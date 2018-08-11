@@ -1,6 +1,6 @@
 # BSModule
 
-在 Github 上查看 [源码]((https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js)) [测试](https://github.com/BlueSky-07/ES-6/tree/master/static/test/BSModule)
+在 Github 上查看 [源码](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js) [测试](https://github.com/BlueSky-07/ES-6/tree/master/static/test/BSModule)
 
 `Browser-Simple-Module` `v1.1` 
 
@@ -110,7 +110,7 @@ import('https://static.ihint.me/BSData.js')
 
 ### 1.2 ES6 Module 的载入的新思路
 
-虽然暂时不能通过 BSModule 在引入一个 **ES6 Module** 后立即使用这个模块，但是仍然可以在引入的 **import.js** 中通过`import ? from 'target.js'`引入目标 **ES6 Module**来使用它们。示例：
+虽然暂时不能通过 **BSModule** 在引入一个 **ES6 Module** 后立即使用这个模块，但是仍然可以在引入的 **import.js** 中通过`import ? from 'target.js'`引入目标 **ES6 Module**来使用它们。示例：
 ```html
 <!--index.html-->
 <body>
@@ -143,7 +143,7 @@ class BSModule {
 }
 export default BSModule
 ```
-现在，只能通过 ES6 的模块 **import** 语句来使用了：
+现在，只能通过 **ES6 Module** 的 **import** 命令来使用了：
 ```html
 <body>
   <script type="module">
@@ -164,7 +164,7 @@ export default BSModule
 
 ### 2.1 准备工作
 
-考虑到 **.js** 文件可能所在路径各不相同，以下所有方法全部是非静态的，即需要实例化一个 **BSModule** 后才能调用。
+考虑到 **.js** 文件可能所在路径各不相同，所以可以尝试配置一个根路径，在引入 **.js** 的路径前自动添加根路径。所以接下来的所有方法全部是非静态的，即需要实例化`new BSModule( ... )`后才能调用。
 ```js
 class BSModule {
   constructor({id_prefix = 'js_module_', js_root = 'js/', emptyjs = 'empty.js'} = {}) {
@@ -202,7 +202,7 @@ const manager = new BSModule({
 
 ### 2.2 封装 ES6 Module 类型 **.js** 引入
 
-给 **BSModule** 加两个方法即可：
+添加两个方法用来专门引入`type='module'`的 **.js**：
 ```js
 class BSModule {
   constructor( ... ) { ...... }
@@ -232,7 +232,7 @@ class BSModule {
 
 ### 2.3 同一页面模块的引入与数据传输
 
-通过之前的准备工作，现在的 **BSModule** 可以支持引入别的模块了。上文说过，虽然暂时不能使用 [动态 import()](#1-1-es6-import-) 来访问引入模块的变量和函数，但是也提到了一个 [新思路](#1-2-es6-module-)，参照这个新思路，也可以尝试向引入的模块传值。
+上文说过，虽然暂时不能使用 [动态 import()](#1-1-es6-import-) 来访问引入模块的变量和函数，但是也提到了一个 [新思路](#1-2-es6-module-)，参照这个新思路，也可以尝试向引入的模块传值。
 
 ```js
 class BSModule {
@@ -253,7 +253,7 @@ BSModule.dataStorage = {}
 1. `module_name`是模块名，与前文一致。
 1. `?data`是可选参数，表示传给即将引入模块所使用的值。
 
-ES6 的 **import 命令** 不会重复引入 **src** 相同的模块，执行到重复引用时会使用第一次引入的模块。而且，ES6 模块是动态引用，并且不会缓存值，模块里面的变量绑定其所在的模块。根据这个原理，只需给 **BSModule** 添加一个静态变量`dataStorage`用来存储数据，在引入的模块中也引入 **BSModule**，就可以通过`BSModule.dataStorage[module_name]`来获取数据了。
+**ES6** 的 **import 命令** 不会重复引入 **src** 相同的模块，执行到重复引用时会使用第一次引入的模块。而且，**ES6 Module** 是动态引用，并且不会缓存值，模块里面的变量绑定其所在的模块。根据这个原理，给 **BSModule** 添加一个静态变量`dataStorage`用来存储数据，在引入的模块中也引入 **BSModule**，就可以通过`BSModule.dataStorage[module_name]`来获取数据了。
 
 **参考资料**
 >- [ES6 模块与 CommonJS 模块的差异](http://es6.ruanyifeng.com/#docs/module-loader#ES6-%E6%A8%A1%E5%9D%97%E4%B8%8E-CommonJS-%E6%A8%A1%E5%9D%97%E7%9A%84%E5%B7%AE%E5%BC%82) - *<small>es6.ruanyifeng.com</small>*
@@ -296,7 +296,7 @@ console.log(`data received: ${BSModule.dataStorage[BSModule.lastModuleName]}`)
 
 **src 设置**
 
-也可以给传入的模块的数据中设置`_src_`值，它表示实际 **.js** 文件与模块名不同，在引入时会使用这个`_src_`值。参考上文 [此处](#2-2-es6-module-js-)。
+给传入的模块的数据`data: {}`中设置`_src_`值，它表示实际 **.js** 文件与模块名不同，在引入时会使用这个`_src_`值。参考上文 [此处](#2-2-es6-module-js-)。
 
 **调用示例**
 
@@ -337,7 +337,7 @@ console.log(`data received: ${BSModule.dataStorage[BSModule.lastModuleName]}`)
 
 ### 2.4 不同页面模块的数据传输
 
-向另一个页面传输数据，可以通过地址拼接完成。剩下的处理与在同一页面无异。
+向另一个页面传输数据，可以通过地址拼接完成。
 
 ```js
 class BSModule {
@@ -419,7 +419,7 @@ console.log(`data received: ${BSModule.dataStorage[BSModule.lastModuleName]}`)
 
 ### 2.5 方法整合 auto()
 
-可以看到不论是否在同一页面，其核心原理都一样。可以将其整合成一个 **auto()** 方法，使其能够自动处理不同情况。
+可以看到不论是否在同一页面，其核心原理是一样的，将其整合成一个 **auto()** 方法，使其能够自动处理不同情况。
 
 ```js
 class BSModule {
@@ -613,7 +613,7 @@ document.querySelector('#data').innerHTML = `data:${JSON.stringify(BSModule.data
 
 ### 3.3 函数方式载入模块及数据传输
 
-上文说过，这样的方式切换页面会将数据拼接到地址后面才能传输，这样的话地址栏将会变得不太好看。考虑到大部分场景可能是单页应用，即不会切换 **.html**页面，所以可以写一个方法来完成页面的切换与数据的传输。代码：
+上述的方式切换页面会将数据拼接到地址后面才能传输，这样的话地址栏将会变得不太好看。考虑到大部分场景可能是单页应用，即不会切换 **.html**页面，所以可以写一个方法来完成页面的切换与数据的传输，同时不把数据拼在地址后面 。代码：
 ```js
 class BSModule {
   ......
@@ -655,7 +655,7 @@ class BSModule {
 ```
 **说明**
 1. 思路与上文的单页面多模块间数据传输一样，通过`BSModule.dataStorage`保存数据。
-1. 与之前不同的是，这次操作会改变地址，所以会响应之前的`onhashchange`事件，为了不让模块载入，用一个标记`BSModule.gotoPreventApplyAgain`标识，同时修改之前的注册事件来识别该标识。
+1. 与之前不同的是，这次操作会改变地址，所以会响应之前的`onhashchange`事件，为了不让模块第二次载入，用一个标记`BSModule.gotoPreventApplyAgain`标识，同时修改之前的注册事件来识别该标识。
 1. 注意：传入的`path`不需要在前面加`#`。
 
 **调用示例**

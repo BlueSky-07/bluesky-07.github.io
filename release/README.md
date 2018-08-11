@@ -63,4 +63,4 @@ directory just cloned
 
 4. do not forget add a link in `articles/index.md` for readers to access your article
 
-5. `git add .` -> `git commit -m'index'` -> `git push`
+5. `git add .` -> `git commit -m'a new article'` -> `git push`

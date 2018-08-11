@@ -23,13 +23,13 @@ div .article-container #article {
             }
             div .info-container {
                 div .info {
-                    Released：{{$article.release_date}}
+                    Released: {{$article.release_date}}
                 }
                 div .info {
-                    Updated：{{$article.update_date}}
+                    Updated: {{$article.update_date}}
                 }
                 div .info {
-                    Version：{{$article.version}}
+                    Version: {{$article.version}}
                 }
             }
         }

@@ -1,7 +1,7 @@
 /**
  * iHint-Pages Javascipt
  * @BlueSky
- * Version Alpha, 1.0
+ * Version Alpha, 0.1
  * https://github.com/BlueSky-07/bluesky-07.github.io
  */
 
@@ -21,7 +21,7 @@ if (location.pathname.endsWith('index.html')) {
 BSXml.start(['loading', 'footer'])
 
 const json = location.search.slice(1)
-BSFetch.get(`articles/${json}.json`)
+BSFetch.get(`articles/${json}.json?${new Date().getTime()}`)
 	.then(
 		article => {
 			BSXml.start(['article'], {
@@ -30,7 +30,7 @@ BSFetch.get(`articles/${json}.json`)
 				},
 				next() {
 					$('#loading').remove()
-					BSFetch.get(`articles/${$('#content').getAttribute('url')}.md`, {
+					BSFetch.get(`articles/${$('#content').getAttribute('url')}.md?${new Date().getTime()}`, {
 						restype: 'text'
 					}).then(
 						md => {

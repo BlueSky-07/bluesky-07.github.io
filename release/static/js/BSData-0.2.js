@@ -2,9 +2,9 @@
  * Browser-Simple-DataHandler
  * @BlueSky
  *
- * Version Alpha, 0.1
+ * Version Alpha, 0.2
  *
- * Last updated: 2018/8/6
+ * Last updated: 2018/8/13
  *
  */
 
@@ -44,6 +44,30 @@ class BSData {
         )
     delete data['']
     return data
+  }
+  
+  static formdata_to_object(formdata = new FormData()) {
+    if (formdata instanceof FormData) {
+      const data = {}
+      for (const entry of formdata.entries()) {
+        const [key, value] = entry
+        data[key] = value
+      }
+      return data
+    } else {
+      throw new Error('arg must be an instance of FormData')
+    }
+  }
+  
+  static object_to_formdata(data = {}) {
+    const formdata = new FormData()
+    Object.entries(data)
+        .forEach(
+            ([key, value]) => {
+              formdata.append(key, value)
+            }
+        )
+    return formdata
   }
 }
 

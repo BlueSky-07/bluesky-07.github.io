@@ -6,7 +6,7 @@
  */
 
 import BSXml from "./BSXml-2.2.js"
-import BSFetch from "./BSFetch-0.3.js"
+import BSFetch from "./BSFetch-1.0.js"
 const $ = document.querySelector.bind(document)
 const $$ = document.querySelectorAll.bind(document)
 

@@ -1,6 +1,6 @@
 # iHint-Pages
 
-`release 0.2`
+`release 0.3`
 
 ## get your own github.io with iHint-Pages
 
@@ -65,6 +65,20 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 5. `git add .` -> `git commit -m'a new article'` -> `git push`
 
 ## update log
+
+#### 2018/8/13 v0.3
+
+**NEW**
+1. <del>NONE</del>
+
+**CHANGE**
+1. update js lib: BSFetch v1.0
+
+**FIX**
+1. <del>NONE</del>
+
+**KNOWN BUG**
+1. <del>NONE</del>
 
 #### 2018/8/11 v0.2
 

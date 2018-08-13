@@ -1,6 +1,6 @@
 # BSModule
 
-在 Github 上查看 [源码](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js) [测试](https://github.com/BlueSky-07/ES-6/tree/master/static/test/BSModule)
+在 Github 上查看 [源码](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSModule.js) [测试](https://github.com/BlueSky-07/ES-6/tree/master/test/BSModule)
 
 `Browser-Simple-Module` `v1.1` 
 
@@ -115,7 +115,7 @@ import('https://static.ihint.me/BSData.js')
 <!--index.html-->
 <body>
   <script>
-    const add_js = ( ... ) => {
+    const add_js = (...) => {
       ......
     }
     add_js('import', 'import.js', {
@@ -164,7 +164,7 @@ export default BSModule
 
 ### 2.1 准备工作
 
-考虑到 **.js** 文件可能所在路径各不相同，所以可以尝试配置一个根路径，在引入 **.js** 的路径前自动添加根路径。所以接下来的所有方法全部是非静态的，即需要实例化`new BSModule( ... )`后才能调用。
+考虑到 **.js** 文件可能所在路径各不相同，所以可以尝试配置一个根路径，在引入 **.js** 的路径前自动添加根路径。所以接下来的所有方法全部是非静态的，即需要实例化`new BSModule(...)`后才能调用。
 ```js
 class BSModule {
   constructor({id_prefix = 'js_module_', js_root = 'js/', emptyjs = 'empty.js'} = {}) {
@@ -173,7 +173,7 @@ class BSModule {
     this.emptyjs = `${js_root}${emptyjs}`
   }
 
-  static add_js( ... ) { ...... }
+  static add_js(...) { ...... }
 }
 ```
 当然，`add_js()`方法是通过传入值进行操作的，所以不需要实例化就能使用，使用时直接调用静态方法：`BSModule.add_js(...)`。
@@ -205,8 +205,8 @@ const manager = new BSModule({
 添加两个方法用来专门引入`type='module'`的 **.js**：
 ```js
 class BSModule {
-  constructor( ... ) { ...... }
-  static add_js( ... } = {}) { ...... }
+  constructor(...) { ...... }
+  static add_js(...) { ...... }
 
   add_module(name = '', {src = '', callback = ''} = {}) {
     BSModule.add_js(`${this.id_prefix}${name}`, `${this.js_root}${src || name}.js`, {callback, type: 'module'})
@@ -368,7 +368,7 @@ BSModule.dataStorage = {}
 **参数说明**
 1. `htmlpath`表示目的 **.html** 路径。
 
-在出发页调用`to_another_page( ... )`，在目的页调用`apply_module()`即可完成模块的引用和数据的传输。
+在出发页调用`to_another_page(...)`，在目的页调用`apply_module()`即可完成模块的引用和数据的传输。
 
 **调用示例**
 ```html
@@ -456,7 +456,7 @@ class BSModule {
 }
 BSModule.dataStorage = {}
 ```
-在调用时无需多做修改，全部调用`manager.auto( ... )`即可。代码可参考上文的注释部分。
+在调用时无需多做修改，全部调用`manager.auto(...)`即可。代码可参考上文的注释部分。
 
 ### 2.6 在线测试页面
 
@@ -531,7 +531,7 @@ class BSModule {
 
 ### 3.2 修改地址方式载入模块和传输数据
 
-为了复用之前的`apply_module( ... )`方法，需要做一些调整，同时不影响`auto()`的调用。代码：
+为了复用之前的`apply_module(...)`方法，需要做一些调整，同时不影响`auto()`的调用。代码：
 ```js
 class BSModule {
   ......

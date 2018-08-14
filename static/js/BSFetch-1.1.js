@@ -2,9 +2,9 @@
  * Browser-Simple-Fetch
  * @BlueSky
  *
- * Version Alpha, 1.0
+ * Version Alpha, 1.1
  *
- * Last updated: 2018/8/13
+ * Last updated: 2018/8/14
  *
  */
 import BSData from './BSData-0.2.js'
@@ -37,15 +37,51 @@ class BSRequest {
 }
 
 class BSFetch {
-  constructor({basepath = '', port = 80} = {}) {
-    this.basepath = basepath
-    this.port = port
+  constructor({basepath = ''} = {}) {
+    this.basepath = basepath || location.hostname
+  }
+  
+  static global() {
+    window.BSFetch = BSFetch
   }
   
   URL(request = '') {
-    const basepath = this.basepath || location.hostname || ''
-    const port = this.port || location.port || '80'
-    return `//${basepath}:${port}/${request}`
+    const basepath = this.basepath || location.hostname
+    return `${this.basepath}${request}`
+  }
+  
+  async head(url = '', {data = {}, reqtype = '', restype = 'headers', cookies = '', headers = {}, debug = false} = {}) {
+    return BSFetch.fetch(this.URL(url), 'HEAD', {data, reqtype, restype, cookies, headers, debug})
+  }
+  
+  async get(url = '', {data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false} = {}) {
+    return BSFetch.fetch(this.URL(url), 'GET', {data, reqtype, restype, cookies, headers, debug})
+  }
+  
+  async post(url = '', {data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false} = {}) {
+    return BSFetch.fetch(this.URL(url), 'POST', {data, reqtype, restype, cookies, headers, debug})
+  }
+  
+  async put(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
+    return BSFetch.fetch(this.URL(url), 'PUT', {data, reqtype, restype, cookies, headers, debug})
+  }
+  
+  async delete(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
+    return BSFetch.fetch(this.URL(url), 'DELETE', {data, reqtype, restype, cookies, headers, debug})
+  }
+  
+  async patch(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
+    return BSFetch.fetch(this.URL(url), 'PATCH', {data, reqtype, restype, cookies, headers, debug})
+  }
+  
+  async options(url = '', {headers = {}, cookies = '', debug = false}) {
+    return BSFetch.fetch(this.URL(url), 'OPTIONS', {headers, cookies, debug})
+  }
+  
+  async fetch(url = '#', method = 'GET', {
+    data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false
+  } = {}) {
+    return BSFetch.fetch(this.URL(url), method, {data, reqtype, restype, cookies, headers, debug})
   }
   
   static async head(url = '', {data = {}, reqtype = '', restype = 'headers', cookies = '', headers = {}, debug = false} = {}) {
@@ -76,9 +112,13 @@ class BSFetch {
     return this.fetch(url, 'OPTIONS', {headers, cookies, debug})
   }
   
-  static async fetch(url = '', method = '', {
+  static async fetch(url = '#', method = 'GET', {
     data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false
   } = {}) {
+    if (typeof url !== 'string' || typeof method !== 'string') {
+      throw new Error('BSFetch.fetch(url, method, {?...}): url/method must be a string')
+    }
+    
     const request = new BSRequest(url, debug)
     request.headers = new Headers(headers)
     
@@ -157,11 +197,7 @@ class BSFetch {
       request.credentials = 'omit'
     }
     
-    try {
-      return doRequest(request)
-    } catch (e) {
-      throw e
-    }
+    return doRequest(request)
   }
 }
 
@@ -179,7 +215,11 @@ const doRequest = (request = new BSRequest()) => {
             return response.status
           }
           if (!response.ok) {
-            throw new Error(`cannot fetch resource: ${response.status} - ${response.statusText}`)
+            const e = new Error()
+            e.message = `cannot fetch resource: ${response.status}`
+            e.message += response.statusText ? ` - ${response.statusText}` : ''
+            e.response = response
+            throw e
           }
           switch (request.responseType) {
             case 'JSON':
@@ -219,7 +259,7 @@ const ResponseTypes = new Set([
 ])
 
 const ContentTypes = {
-  JSON: 'application/json; charset=utf-8 ',
+  JSON: 'application/json; charset=utf-8',
   FORM: 'application/x-www-form-urlencoded; charset=UTF-8',
   FORMDATA: 'multipart/form-data'
 }

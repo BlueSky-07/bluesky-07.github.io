@@ -66,13 +66,13 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 ## update log
 
-#### 2018/8/13 v0.3
+#### 2018/8/14 v0.3
 
 **NEW**
 1. <del>NONE</del>
 
 **CHANGE**
-1. update js lib: BSFetch v1.0
+1. update js lib: BSFetch v1.1
 
 **FIX**
 1. <del>NONE</del>

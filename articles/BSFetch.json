@@ -3,11 +3,11 @@
   "title": "BSFetch 介绍",
   "author": "BlueSky",
   "release_date": "2018/8/11",
-  "update_date": "2018/8/13",
-  "version": "2",
+  "update_date": "2018/8/14",
+  "version": "3",
   "banner_link": "https://i.loli.net/2018/08/11/5b6e6fb332d38.jpg",
   "banner_from": "https://unsplash.com/photos/PhYq704ffdA",
   "keywords": [
-    "BSFetch", "Javascript", "ECMA-Scipt 6", "ihint.me", "github.com/BlueSky-07"
+    "BSFetch", "HTTP", "fetch API", "网络请求", "Javascript", "ECMA-Scipt 6", "ihint.me", "github.com/BlueSky-07"
   ]
 }

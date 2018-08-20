@@ -3,7 +3,7 @@ BlueSky's ES 6
 
 ### [BSModule](?BSModule)
 
-`Browser-Simple-Module` `v1.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSModule.js) 上查看源码</small>
+`Browser-Simple-Module` `v1.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSModule.js) 上查看源码</small>
 
 一个关于页面组件载入的简单实现。
 
@@ -17,7 +17,7 @@ BlueSky's ES 6
 
 ### [BSFetch](?BSFetch)
 
-`Browser-Simple-Fetch` `v1.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSFetch.js) 上查看源码</small>
+`Browser-Simple-Fetch` `v1.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSFetch.js) 上查看源码</small>
 
 一个关于`fetch(...)`的简单封装。
 
@@ -36,7 +36,7 @@ BlueSky's ES 6
 
 ### [BSBind](?BSBind)
 
-`Browser-Simple-DataBind` `v0.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/static/modules/BSBind.js) 上查看源码</small>
+`Browser-Simple-DataBind` `v0.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSBind.js) 上查看源码</small>
 
 一个关于数据绑定的简单实现。
 

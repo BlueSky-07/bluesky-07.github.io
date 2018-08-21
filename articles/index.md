@@ -3,7 +3,7 @@ BlueSky's ES 6
 
 ### [BSModule](?BSModule)
 
-`Browser-Simple-Module` `v1.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSModule.js) 上查看源码</small>
+`Browser-Simple-Module` `v1.2` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSModule.js) 上查看源码</small>
 
 一个关于页面组件载入的简单实现。
 

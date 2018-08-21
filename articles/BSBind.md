@@ -490,7 +490,7 @@ export default BSBind
 <p>storage.sender <span id="sender-symbol">:</span> <input id="sender"></p>
 <p>storage.data <span id="data-symbol">:</span> <input id="data"></p>
 <script type="module">
-  import BSBind from '//node.com/modules/BSBind.js'
+  import BSBind from 'https://static.ihint.me/BSBind.js'
   
   const $ = document.querySelector.bind(document)
   const $$ = document.querySelectorAll.bind(document)

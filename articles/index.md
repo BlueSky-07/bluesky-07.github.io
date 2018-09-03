@@ -45,3 +45,15 @@ BlueSky's ES 6
 - 本身可写可读，但源数据更新时会被更新
 - 只读实时源数据
 - 与源数据读写双向绑定
+
+----
+
+### [BSEvent](?BSEvent)
+
+`Broswer-Simple-EventEmitter` `v0.2` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSEvent.js) 上查看源码</small>
+
+一个关于事件处理的简单实现。
+
+- `emitter.on(...)`
+- `emitter.once(...)`
+- `emitter.emit(...)`

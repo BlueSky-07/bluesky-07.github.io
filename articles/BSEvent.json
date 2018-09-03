@@ -1,0 +1,13 @@
+{
+  "md_link": "BSEvent",
+  "title": "BSEvent 原理",
+  "author": "BlueSky",
+  "release_date": "2018/9/3",
+  "update_date": "2018/9/3",
+  "version": "1",
+  "banner_link": "https://i.loli.net/2018/09/03/5b8ce8e5d904e.jpg",
+  "banner_from": "https://unsplash.com/photos/pRV5T0czGPM",
+  "keywords": [
+    "BSEvent", "事件处理", "Javascript", "ECMA-Scipt 6", "ihint.me", "github.com/BlueSky-07"
+  ]
+}

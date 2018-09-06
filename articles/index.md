@@ -1,6 +1,19 @@
 BlueSky's ES 6
 ========
 
+### BSXml
+
+`Broswer-Slim-Xml` `v3.4` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSXml/) 上查看源码</small>
+
+一个前端开发框架的简单实现。
+
+**功能包含**
+
+- [模版引擎渲染、事件注册、输入框双向绑定](?BSXml-Template)
+- [组件化开发](?BSXml-Component)
+
+----
+
 ### [BSModule](?BSModule)
 
 `Browser-Simple-Module` `v1.2` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSModule.js) 上查看源码</small>

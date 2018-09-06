@@ -1,0 +1,13 @@
+{
+  "md_link": "BSXml-Template",
+  "title": "BSXml-Template 原理",
+  "author": "BlueSky",
+  "release_date": "2018/9/5",
+  "update_date": "2018/9/5",
+  "version": "1",
+  "banner_link": "https://i.loli.net/2018/09/05/5b8f316599efa.jpg",
+  "banner_from": "https://unsplash.com/photos/pxoZSTdAzeU",
+  "keywords": [
+    "BSXml", "Template", "模板引擎", "事件注册", "输入框双向绑定", "Javascript", "ECMA-Scipt 6", "ihint.me", "github.com/BlueSky-07"
+  ]
+}

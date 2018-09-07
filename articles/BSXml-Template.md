@@ -150,9 +150,13 @@ const HTMLTags = new Set([
 ])
 ```
 
+该对象有一个`compile()`方法，可以将以此节点为根节点生成一个节点树。在创建实例的时候，调用`BSElement.create(...)`方法，此处会去判断原始字符串是一个标签的开始，还是标签内的文本。所有合法的标签名被`HTMLTags`记录。
+
+注意，这里没有做标签的转义，也就是无法创建文本内容为 **HTML** 标签名的节点。
+
 那么解释器的基本流程将会是这样的：
 
-![基本流程](https://i.loli.net/2018/09/06/5b9125c0d2a31.png)
+![基本流程](https://i.loli.net/2018/09/07/5b91e214bea13.jpg)
 
 ## 1.3 Parser 语法解析器
 
@@ -204,6 +208,9 @@ export default class Parser {
         child.children.push(element)
       }
     }
+    if (child.tagName !== 'vdRoot' || parents.length !== 0) {
+      throw new Error('template has mistake(s)')
+    }
     return child
   }
 }
@@ -227,5 +234,191 @@ const initElement = (element, raw = '', initElement = '') => {
 }
 ```
 
+该代码定义了一个`Parser`对象，这个对象负责将 **BSXml** 语法转换成上述的 `BSElement` 对象。它的工作流程是这样的：
+
+![基础流程](https://i.loli.net/2018/09/07/5b91e1cfdd9d1.jpg)
+
+`initElement()`方法用于处理与标签名在同一行的属性，这里处理了所有标签的`id` `class`属性和 **a 标签** 的`href` `target`属性。在实例化`Parser`的时候可以将自定义的标签初始化方法传入，实现对于 **BSXml** 语法的定制。
+
 **在线示例**
->- [BSXml - Template 基础语法](https://es6.ihint.me/BSXml/template-1/)
+>- [BSXml - Template 基础流程](https://es6.ihint.me/BSXml/template-1/)
+
+## 1.4 标签属性处理
+
+现在可以通过`initElement()`完成对于属性的解析。但是各种各样的标签有各式各样的属性，总不能全部考虑到位。所以，现在来实现对于所有属性的通用语法解析。
+
+规定形如`~ {属性名} {属性值}`这样的语句会被转换成`<某标签 {属性名}="{属性值}">`，例如：
+```text
+form {
+  ~ name login
+
+  input {
+    ~ name username
+    ~ placeholder 用户名
+  }
+
+  input {
+    ~ name password
+    ~ placeholder 密码
+    ~ type password
+  }
+
+  input {
+    ~ type submit
+    ~ value 登录
+  }
+}
+```
+
+上面的模板将会被转换成下面的 **HTML** 语句：
+
+```html
+<form name="login">
+  <input name="username" placeholder="用户名">
+  <input name="password" placeholder="密码" type="password">
+  <input type="submit" value="登录">
+</form>
+```
+
+实现时只需要在创建`BSElement`对象之前做一次判断即可：
+```js
+......
+let line = this.lines[i].trim()
+
+// set attributes
+if (line.startsWith('~')) {
+  const [key, ...value] = line.slice(1).split(' ').filter(i => i.length > 0)
+  child.props[key] = value.join(' ')
+  continue
+}
+
+// create element
+const element = BSElement.create(line)
+......
+```
+
+**在线示例**
+>- [BSXml - Template 属性值处理](https://es6.ihint.me/BSXml/template-2/)
+
+## 1.5 注释
+
+规定以`//`开头的，或者是以`/*`开头并且以`*/`结尾的一行为注释，在解析时忽略。
+
+实现：
+```js
+......
+let line = this.lines[i].trim()
+
+// drop comments
+if (
+    line.startsWith('//') ||
+    (line.startsWith('/*') && line.endsWith('*/'))
+) {
+  continue
+}
+
+// set attributes
+// create element
+......
+```
+
+## 1.6 数据填充
+
+现在基本完成了对于 **BSXml** 语法向 **HTML** 解析，接下来就要做一些 **HTML** 原来不支持的功能。第一步，来实现对于数据的填充功能。
+
+作为模版，它的作用应当是规定元素的位置、样式，然后再去读取数据，填充进来，这样就可以复用模板。
+
+现在规定，形如`{{js 语句}}`的部分会在解析时计算其 **js 语句** 部分，然后替换整个部分。而且，规定形如`{{$obj}}`的语句，以美元符开头的部分会被解析成传入的数据集属性。
+
+比如有这样一组数据：
+```json
+{
+  "author": {
+    "name": "BlueSky",
+    "website": "https://ihint.me"
+  },
+  "style": {
+    "name_color": "#00f",
+    "website_color": "#0f0"
+  }
+}
+```
+
+模板：
+```text
+div .author {
+  p .name {
+    ~ style color: {{$style.name_color}}; font-size: 22px;
+    name: {{$author.name}}
+  }
+  p .website {
+    ~ style color: {{$style.website_color}}; font-size: 14px;
+    website:
+    
+    a *"{{$author.website}}" {
+      {{$author.website}}
+    }
+  }
+  p {
+    today:
+
+    {{new Date().toLocaleString()}}
+  }
+}
+```
+
+那么二者配合会生成以下的 **HTML** 语句：
+```html
+<div class="author">
+  <p class="name" style="color: #00f; font-size: 22px;">
+    name: BlueSky
+  </p>
+  <p class="website" style="color: #0f0; font-size: 14px;">
+    website:
+    <a href="https://ihint.me" target="_blank">https://ihint.me</a>
+  </p>
+  <p>
+    today:
+    某日期
+  </p>
+</div>
+```
+
+实现步骤如下：先将所有的`{{}}`块中的`$`替换成`dataset.`，然后再对所有的`{{}}`块内的语句调用`eval()`得到结果，并用结果去替换。
+
+那么在调用 **Parser** 实例的`compile()`方法时需要传入数据集`dataset`，代码调整如下：
+```js
+compile(dataset = {}) {
+  ......
+    // drop comments
+
+    // convert $data to dataset[data]
+    line = line.replace(
+        /{{[^}]*}}/g,
+        reg => reg.replace(/\$/g, 'dataset.')
+    )
+  
+    // read data from dataset
+    try {
+      line = line.replace(
+          /{{[^}]*}}/g,
+          reg => {
+            reg = reg.slice(2, -2)
+            try {
+              return eval(reg)
+            } catch (e) {
+              throw new Error(`cannot calculate the result of ${reg.replace(/dataset[.]/g, '$')}`)
+            }
+          }
+      )
+    } catch (e) {
+      throw e
+    }
+
+    // set attributes
+    // create element
+......
+```
+
+**在线示例**
+>- [BSXml - Template 值填充](https://es6.ihint.me/BSXml/template-3/)

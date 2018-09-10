@@ -3,7 +3,7 @@ BlueSky's ES 6
 
 ### BSXml
 
-`Broswer-Slim-Xml` `v3.4` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSXml/) 上查看源码</small>
+`Broswer-Slim-Xml` `v3.5` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSXml/) 上查看源码</small>
 
 一个前端开发框架的简单实现。
 

@@ -2,7 +2,7 @@
 
 在 Github 上查看 [源码](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSXml) [测试](https://github.com/BlueSky-07/ES-6/tree/master/test/BSXml)
 
-`Broswer-Slim-Xml` `v3.4`
+`Broswer-Slim-Xml` `v3.5`
 
 一个前端开发框架的简单实现。该工具仅用作学习用途，如需在实际环境中使用还需要更多的测试与完善。
 
@@ -27,7 +27,7 @@
 
 当然，**HTML** 是超文本标记语言，它实际上只是负责最终页面的呈现，规定页面有哪些元素，以及这些元素长什么样，这些都是它分内的事儿，所以以上这些痛点都不是 **HTML** 的错。而且不管页面实际代码有多复杂，对于用户来说都是不关心的，他们只会在乎页面的最终呈现结果而已。但是对于开发者而言，以上这些都是实实在在的痛点。
 
-针对以上痛点，还有更多我没有提到的痛点，诞生了许许多多的解决方案，也就是形形色色的前端框架。它们提供了很多想法，也使页面的开发变得简单高效，所以越来越多的人从裸撸 **HTML** 到面向前端框架开发。
+针对以上痛点，还有更多我没有提到的痛点，诞生了许许多多的解决方案，也就是形形色色的前端框架。它们提供了很多想法，也使页面的开发变得简单高效，所以越来越多的人从原生 **HTML** 到面向前端框架开发。
 
 我也从中获得了一些灵感，包括模板引擎、数据绑定等。用的时候还是比较爽的，但是我更喜欢去研究它们的原理，所以我打算自己实现一套，去探究这些神奇工具背后的原理。
 
@@ -282,18 +282,19 @@ form {
 
 实现时只需要在创建`BSElement`对象之前做一次判断即可：
 ```js
-......
-let line = this.lines[i].trim()
+compile(dataset = {}) {
+  ......
+  let line = this.lines[i].trim()
 
-// set attributes
-if (line.startsWith('~')) {
-  const [key, ...value] = line.slice(1).split(' ').filter(i => i.length > 0)
-  child.props[key] = value.join(' ')
-  continue
-}
+  // set attributes
+  if (line.startsWith('~')) {
+    const [key, ...value] = line.slice(1).split(' ')  .filter(i => i.length > 0)
+    child.props[key] = value.join(' ')
+    continue
+  }
 
-// create element
-const element = BSElement.create(line)
+  // create element
+  const element = BSElement.create(line)
 ......
 ```
 
@@ -306,19 +307,20 @@ const element = BSElement.create(line)
 
 实现：
 ```js
-......
-let line = this.lines[i].trim()
+compile(dataset = {}) {
+  ......
+  let line = this.lines[i].trim()
 
-// drop comments
-if (
-    line.startsWith('//') ||
-    (line.startsWith('/*') && line.endsWith('*/'))
-) {
-  continue
-}
+  // drop comments
+  if (
+      line.startsWith('//') ||
+      (line.startsWith('/*') && line.endsWith('*/'))
+  ) {
+    continue
+  }
 
-// set attributes
-// create element
+  // set attributes
+  // create element
 ......
 ```
 
@@ -390,35 +392,284 @@ div .author {
 ```js
 compile(dataset = {}) {
   ......
-    // drop comments
+  // drop comments
 
-    // convert $data to dataset[data]
+  // convert $data to dataset[data]
+  line = line.replace(
+      /{{[^}]*}}/g,
+      reg => reg.replace(/\$/g, 'dataset.')
+  )
+
+  // read data from dataset
+  try {
     line = line.replace(
         /{{[^}]*}}/g,
-        reg => reg.replace(/\$/g, 'dataset.')
-    )
-  
-    // read data from dataset
-    try {
-      line = line.replace(
-          /{{[^}]*}}/g,
-          reg => {
-            reg = reg.slice(2, -2)
-            try {
-              return eval(reg)
-            } catch (e) {
-              throw new Error(`cannot calculate the result of ${reg.replace(/dataset[.]/g, '$')}`)
-            }
+        reg => {
+          reg = reg.slice(2, -2)
+          try {
+            return eval(reg)
+          } catch (e) {
+            throw new Error(`cannot calculate the result of ${reg.replace(/dataset[.]/g, '$')}`)
           }
-      )
-    } catch (e) {
-      throw e
-    }
+        }
+    )
+  } catch (e) {
+    throw e
+  }
 
-    // set attributes
-    // create element
+  // set attributes
+  // create element
+  const element = BSElement.create(line)
+    if (line.endsWith('{') && !line.endsWith('{{')) {
+    parents.push(child)
+    child = element
+    initElement(child, line, this.initElement)
+  } else if (line.startsWith('}') && !line.startsWith('}}')) {
+    const parent = parents.pop()
+    parent.children.push(child)
+    child = parent
+  } else {
+    child.children.push(element)
+  }
 ......
 ```
 
 **在线示例**
 >- [BSXml - Template 值填充](https://es6.ihint.me/BSXml/template-3/)
+
+## 1.7 条件模版
+
+在能够获取值的情况下，就可以添加一些其他语言非常常见的条件语句与循环语句了。
+
+规定条件模板语法如下：
+```text
+@if({{$isLogined}}) {
+  Welcome: {{$user.nickname}}!
+}
+@if({{!$isLogined}}) {
+  Please login first.
+}
+```
+
+```json
+{
+  "isLogined": true,
+  "user": {
+    "nickname": "BlueSky"
+  }
+}
+```
+
+暂时不考虑`@elseif`和`@else`语法。
+
+原`Parser`类增加：
+```js
+compile(dataset = {}) {
+  ......
+  // drop comments
+  // convert $data to dataset[data]
+
+  // condition statement
+  if (line.includes('@if')) {
+    const conditionTemplate = new ConditionParser (line, this.lines, i)
+    conditionTemplate.compile(dataset).forEach(
+        element => {
+          child.children.push(element)
+        }
+    )
+    i += conditionTemplate.lines.length + 1
+    continue
+  }
+
+  // read data from dataset
+  // set attributes
+  // create element
+......
+```
+
+增加`ConditionParser`类：
+```js
+class ConditionParser extends Parser {
+  constructor(definition, lines, i) {
+    try {
+      super(getTemplateOfBlock(i, lines))
+    } catch (e) {
+      throw new Error(`cannot find the end of condition, first line is: ${definition.replace(/dataset[.]/g, '$')}`)
+    }
+    this.definition = definition
+  }
+  
+  compile(dataset = {}) {
+    const conditionTargetName = this.definition.match(/@if\({{[^}]*}}\)/g)[0].slice(4, -1).slice(2, -2)
+    let conditionTarget = null
+    try {
+      conditionTarget = eval(conditionTargetName)
+    } catch (e) {
+      throw new Error(`cannot calculate the result of ${conditionTargetName.replace(/dataset[.]/g, '$')}`)
+    }
+    const elements = []
+    if (conditionTarget) {
+      super.compile(
+          dataset
+      ).children.forEach(
+          element => {
+            elements.push(element)
+          }
+      )
+    }
+    return elements
+  }
+}
+
+const getTemplateOfBlock = (indexOfCurrent = -1 lines = []) => {
+  const template = []
+  const countOfBrackets = {
+    left: 0, right: 0
+  }
+  for (let i = indexOfCurrent + 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (line.endsWith('{') && !line.endsWith('{{')) {
+      countOfBrackets.left++
+    } else if (line.endsWith('}') && !line.endsWith('}}')) {
+      countOfBrackets.right++
+    }
+    if (countOfBrackets.right > countOfBrackets.left) {
+      break
+    } else {
+      template.push(line)
+    }
+  }
+  if (countOfBrackets.right > countOfBrackets.left) {
+    return template
+  } else {
+    throw new Error()
+  }
+}
+```
+
+`ConditionParser`类继承了`Parser`，因为它内部的编译代码部分与`Parser`是一致的，而它特殊在添加了对被`@if(){...}`包含的语法块的处理，其关键是统计左右大括号并匹配。
+
+**在线示例**
+>- [BSXml - Template 条件模板](https://es6.ihint.me/BSXml/template-4/)
+
+## 1.8 循环模板
+
+与条件模板类似，规定：
+```js
+@for({{$projects}}) {
+  p {
+    {{$item.name}}: {{$item.description}}
+  }
+}
+```
+
+```json
+{
+  "projects": [{
+      "name": "BSXml",
+      "description": "a solution for web programing"
+    }, {
+      "name": "BSModule",
+      "description": "a tool for importing modules, including router for SPA, data transferring between modules"
+    }, {
+      "name": "BSFetch",
+      "description": "a pack of Fetch API"
+    }, {
+      "name": "BSBind",
+      "description": "a tool for data binding"
+    }, {
+      "name": "BSEvent",
+      "description": "a tool for events' registering and triggering"
+    }]
+}
+```
+
+实现上也与条件模板类似：
+
+原`Parser`类增加：
+```js
+compile(dataset = {}) {
+  ......
+  // drop comments
+  // convert $data to dataset[data]
+  // condition statement
+  
+  // loop statement
+      if (line.includes('@for')) {
+        const loopTemplate = new LoopParser(line, this.lines, i)
+        loopTemplate.compile(dataset).forEach(
+            element => {
+              child.children.push(element)
+            }
+        )
+        i += loopTemplate.lines.length + 1
+        continue
+      }
+
+  // read data from dataset
+  // set attributes
+  // create element
+......
+```
+增加`LoopParser`类：
+```js
+class LoopParser extends Parser {
+  constructor(definition, lines, i) {
+    try {
+      super(getTemplateOfBlock(i, lines))
+    } catch (e) {
+      throw new Error(`cannot find the end of loop, first line is: ${definition.replace(/dataset[.]/g, '$')}`)
+    }
+    this.definition = definition
+  }
+  
+  compile(dataset = {}) {
+    const loopTargetName = this.definition.match(/@for\({{[^}]*}}\)/g)[0].slice(5, -1).slice(2, -2)
+    let loopTarget = null
+    try {
+      loopTarget = eval(loopTargetName)
+    } catch (e) {
+      throw new Error(`cannot find a variable called ${loopTargetName.replace(/dataset[.]/g, '$')} from dataset`)
+    }
+    if (!Array.isArray(loopTarget)) {
+      throw new Error(`$${loopTargetName.replace(/dataset[.]/g, '')} must be an array`)
+    }
+    const elements = []
+    for (let index = 0; index < loopTarget.length; index++) {
+      super.compile(
+          Object.assign({},
+              dataset, {
+                index, item: loopTarget[index]
+              }
+          )
+      ).children.forEach(
+          element => {
+            elements.push(element)
+          }
+      )
+    }
+    return elements
+  }
+}
+```
+
+`LoopParser`类也继承了`Parser`，因为它内部的编译代码部分与`Parser`也是一致的，而它特殊在添加了对被`@for(){...}`包含的语法块的处理，其关键不仅包含统计左右大括号并匹配，而且要对于数组的所有元素去循环处理模板。
+
+而且在编译其内部内容部分的时候，会在数据集`dataset`中新增两个属性`"item"`和`"index"`，分别表示当前元素和当前元素在数组中的下标。如果传入的数据中有`"item"`或`"index"`时会被覆盖，应该避免使用这两个属性。
+
+此处会发现`@if`优先级别会比`@for`高，也就是说以下模板会被识别成条件模板：
+```text
+@for({{[1, 2, 3]}}) @if({{false}}) {
+  {{$item}}
+}
+```
+但是在实现细节上可以发现，二者均处理了该行仅仅包含其中之一的情况，所以避免在一行内同时写`@if`和`@for`。
+
+**在线示例**
+>- [BSXml - Template 循环模板](https://es6.ihint.me/BSXml/template-5/)
+
+## 1.9 编译流程总结
+
+到目前为止，**BSXml** 已经完成了大部分的编译部分的工作，虽然实现的很简单，但是该有的功能一样也不少，现在其完整编译流程如下：
+
+![工作流程](https://i.loli.net/2018/09/10/5b9608ac63f04.jpg)

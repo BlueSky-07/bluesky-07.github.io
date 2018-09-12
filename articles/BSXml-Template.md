@@ -9,8 +9,7 @@
 **功能包含**
 
 - [模版引擎渲染](#1-)
-- [事件注册](#2-)
-- [输入框双向绑定](#3-)
+- [事件注册、输入框双向绑定](#2-)
 - [组件化开发](?BSXml-Component)
 
 ----
@@ -75,7 +74,7 @@ div .page {
 
 可以看到，瘦身版的语法非常精炼，因为它只保留了 **HTML** 最最核心的部分，包括标签名，最常用的两个属性——`id`和`class`，还有它们的子标签、内容。当然，这只是最基本的功能，包含条件、循环、值填充等功能会在下文慢慢叙述。
 
-为了使得瘦身版的代码能够被浏览器识别，必须得将它们转换成下面的 **HTML** 代码，因为浏览器只认识 **HTML** 语法。那么，需要实现一个解释器，将瘦身语法变成 **HTML**。
+为了使得瘦身版的代码能够被浏览器识别，必须得将它们转换成下面的 **HTML** 代码，因为浏览器只认识 **HTML** 语法。那么，需要实现一个编译器，将瘦身语法变成 **HTML**。
 
 ## 1.2 标签的抽象模型
 
@@ -154,7 +153,7 @@ const HTMLTags = new Set([
 
 注意，这里没有做标签的转义，也就是无法创建文本内容为 **HTML** 标签名的节点。
 
-那么解释器的基本流程将会是这样的：
+那么语法解析器的基本流程将会是这样的：
 
 ![基本流程](https://i.loli.net/2018/09/07/5b91e214bea13.jpg)
 
@@ -673,3 +672,573 @@ class LoopParser extends Parser {
 到目前为止，**BSXml** 已经完成了大部分的编译部分的工作，虽然实现的很简单，但是该有的功能一样也不少，现在其完整编译流程如下：
 
 ![工作流程](https://i.loli.net/2018/09/10/5b9608ac63f04.jpg)
+
+----
+
+# 2. 渲染与交互
+
+## 2.1 Renderer 渲染器
+
+对于一个模板，它的语法解析器的工作原理是一样的，只要为它传入不同的数据然后调用编译方法即可产生对应的 **HTML** 的语句。那么，可以将这个部分抽离出来，实现一个渲染器。
+
+```js
+import Parser from './Parser.js'
+export default class Renderer {
+  constructor(parser, {
+    dataset = {}
+  } = {}) {
+    if (parser instanceof Parser) {
+      this.parser = parser
+    } else {
+      throw new Error('parser should be an instance of Parser')
+    }
+    
+    this.dataset = dataset
+  }
+  
+  render() {
+    const vdRoot = this.parser.compile(this.dataset)
+    const domRoot = vdRoot.compile()
+    const fragment = document.createDocumentFragment()
+    
+    while(domRoot.childNodes[0]) {
+      fragment.append(domRoot.childNodes[0])
+    }
+    
+    return fragment
+  }
+}
+
+DocumentFragment.prototype.paint = function (target, type = 'before') {
+  if (!(target instanceof HTMLElement)) {
+    throw new Error('target should be an instance of HTMLElement')
+  }
+  switch (type) {
+    case 'before':
+      target.parentNode.insertBefore(this, target)
+      break
+    case 'after':
+      if (target.nextElementSibling) {
+        target.parentNode.insertBefore(this, target.nextElementSibling)
+      } else {
+        target.parentNode.appendChild(this)
+      }
+      break
+    case 'replace':
+      target.parentNode.replaceChild(this, target)
+      break
+    case 'push':
+      if (target.children[0]) {
+        target.insertBefore(this, target.children[0])
+      } else {
+        target.appendChild(this)
+      }
+      break
+    case 'append':
+      target.appendChild(this)
+      break
+  }
+}
+```
+它的基础流程是这样的：
+
+![基础流程](https://i.loli.net/2018/09/12/5b98b6f3cff72.jpg)
+
+对于同一个模板，会有它对应的唯一`Parser`，而对于该模板的不同引用产生不同的`Renderer`，它们可以使用同样的那个唯一的`Parser`，每次只需要用自己的数据集去调用`Parser`的编译方法即可产生相应的 **HTML** 语句。
+
+此处，`Renderer`不再返回原始根`<vdRoot></vdRoot>`，而是返回了一个`DocumentFragment`实例，调用者可以自己决定如何将生成的代码以怎样的方式插入到文档中。
+
+**在线示例**
+>- [BSXml - Template 渲染](https://es6.ihint.me/BSXml/template-6/)
+
+## 2.2 事件注册
+
+现在，已经基本完成了对于文档的编译输出工作。但是这还不够，它还缺少一项非常重要的功能，那就是对于事件的支持。下面来实现如何为页面元素添加事件。
+
+因为事件注册的部分要侵入模板，所以先规定一个事件注册的语法如下：
+
+```text
+button {
+  ! click showTime
+  Current Time
+}
+```
+
+它将产生下面的 **HTML** 语句，同时注册了`onclick`事件：
+
+```html
+<button>Current Time</button>
+```
+
+可以发现，事件注册的部分与属性设置语法类似。
+
+分析一下，对于一个模板，它不应该负责对于事件的注册，因为有可能有不同的渲染器引用了自己，所以这得交给渲染器完成。那么如何通知渲染器哪些元素需要注册事件呢？可以通过一个特殊的 **BSElement** 来标记，而且它不能是已有的 **HTML** 标签的一种。
+
+原 `BSElement`类增加：
+```js
+class BSElement {
+  ......
+  static createEventMark(eventName = '', functionName = '') {
+    if (HTMLEvents.has(eventName)) {
+      return new BSElement('BSXml-Event', {eventName, functionName})
+    } else {
+      throw new Error(`invalid event name ${eventName}`)
+    }
+  }
+}
+
+// HTML events reference
+// http://www.w3school.com.cn/tags/html_ref_eventattributes.asp
+const HTMLEvents = new Set([
+  'abort', 'afterprint',
+  'beforeprint', 'beforeunload', 'blur',
+  'canplay', 'canplaythrough', 'change', 'click', 'contextmenu',
+  'dblclick', 'drag', 'dragend', 'dragenter', 'dragleave', 'dragover', 'dragstart', 'drop', 'durationchange',
+  'emptied', 'ended', 'error',
+  'focus', 'formchange', 'forminput',
+  'haschange',
+  'input', 'invalid',
+  'keydown', 'keypress', 'keyup',
+  'load', 'loadeddata', 'loadedmetadata', 'loadstart',
+  'message', 'mousedown', 'mousemove', 'mouseout', 'mouseover', 'mouseup', 'mousewheel',
+  'offline', 'online',
+  'pagehide', 'pageshow', 'pause', 'play', 'playing', 'popstate', 'progress',
+  'ratechange', 'readystatechange', 'redo', 'reset', 'resize',
+  'scroll', 'seeked', 'seeking', 'select', 'stalled', 'storage', 'submit', 'suspend',
+  'timeupdate',
+  'undo', 'unload',
+  'volumechange',
+  'waiting'
+])
+```
+
+在`Parser`编译过程中添加对于事件注册语法的识别：
+```js
+class Parser {
+  ......
+  compile(dataset = {}) {
+    // drop comments
+    // convert $data to dataset[data]
+    // read data from dataset
+    // set attributes
+
+    // mark event
+    if (line.startsWith('!')) {
+      const [eventName, functionName] = line.slice(1).split(' ').filter(i => i.length > 0)
+      child.children.push(BSElement.createEventMark(eventName, functionName))
+      continue
+    }
+
+    // create element
+  }
+}
+```
+
+那么，可以在`Renderer`生成完`fragment`后进行事件注册：
+```js
+class Renderer {
+  constructor(parser, {
+    dataset = {},
+    functions = {}
+  } = {}) {
+    ......
+    this.functions = functions
+  }
+
+  render() {const vdRoot = this.parser.compile(this.dataset)
+    // produce fragment
+    
+    // register events
+    new Array().forEach.call(
+        fragment.querySelectorAll('BSXml-Event'),
+        mark => {
+          const target = mark.parentNode
+          const eventName = mark.getAttribute('eventName')
+          const functionName = mark.getAttribute('functionName')
+          if (Object.keys(this.functions).includes(functionName)) {
+            target.addEventListener(
+                eventName,
+                () => {
+                  this.functions[functionName].call(
+                      this.functions, {
+                        event: window.event,
+                        target,
+                        dataset: this.dataset
+                      })
+                }
+            )
+            mark.remove()
+          } else {
+            throw new Error(`cannot find a function named ${functionName}`)
+          }
+        }
+    )
+    
+    return fragment
+  }
+}
+```
+
+此处注意，需要将所有会触发的函数在初始化`Renderer`的时候传入，这样`Renderer`才能找到它们并把他们与触发器元素绑定。
+
+传入的函数可以接收一个包含当前事件、触发目标、数据集的参数，编写函数的时候可以视情况决定需要哪个资源并使用它们。
+
+**在线示例**
+>- [BSXml - Template 事件注册](https://es6.ihint.me/BSXml/template-7/)
+
+## 2.3 输入框双向绑定
+
+在 [BSBind](?BSBind) 中实现了绑定相关的功能。现在，也可以在这里对所有的输入框进行类似的操作，以方便后续的开发。
+
+规定：
+```text
+input {
+  ~ dict text
+}
+```
+
+然后在所有的`functions`中添加新的`inputs`回调参数，可以通过它来获取或修改输入的值。
+
+与注册事件的实现类似，在原`BSElement`类添加：
+```js
+class BSElement {
+  ......
+  static createInputMark() {
+    return new BSElement('BSXml-Input')
+  }
+}
+```
+
+然后在`Parser`编译过程中添加对输入框的标记：
+```js
+class Parser {
+  ......
+  compile(dataset = {}) {
+    // drop comments
+    // convert $data to dataset[data]
+    // read data from dataset
+    // set attributes
+    // mark event
+    // create element
+    const element = BSElement.create(line)
+
+    // mark input and textarea
+    if (element.tagName === 'input' || element.tagName === 'textarea') {
+      child.children.push(BSElement.createInputMark())
+    }
+
+    if (line.endsWith('{') && !line.endsWith('{{')) {
+      ......
+    }
+  }
+}
+```
+
+同样的，最终在`Renderer`中实现绑定功能：
+```js
+class Renderer {
+  class Renderer {
+  constructor(parser, {
+    dataset = {},
+    functions = {}
+  } = {}) {
+    ......
+    this.inputs = {}
+    this._inputs_ = new Map()
+  }
+
+  render() {const vdRoot = this.parser.compile(this.dataset)
+    // produce fragment
+    // register events
+    new Array().forEach.call(
+        fragment.querySelectorAll('BSXml-Event'),
+        mark => {
+          const target = mark.parentNode
+          const eventName = mark.getAttribute('eventName')
+          const functionName = mark.getAttribute('functionName')
+          if (Object.keys(this.functions).includes(functionName)) {
+            target.addEventListener(
+                eventName,
+                () => {
+                  this.functions[functionName].call(
+                      this.functions, {
+                        event: window.event,
+                        target,
+                        dataset: this.dataset,
++                       inputs: this.inputs
+                      })
+                }
+            )
+            mark.remove()
+          } else {
+            throw new Error(`cannot find a function named ${functionName}`)
+          }
+        }
+    )
+
+    // register inputs
+    new Array().forEach.call(
+        fragment.querySelectorAll('BSXml-Input'),
+        mark => {
+          const target = mark.nextElementSibling
+          const hash = uuid()
+          const inputName = target.getAttribute('dict') || hash
+          Object.defineProperty(
+              this.inputs,
+              inputName, {
+                configurable: false,
+                enumerable: true,
+                get: () => {
+                  return this._inputs_.get(hash).value
+                },
+                set: value => {
+                  this._inputs_.get(hash).value = value
+                }
+              }
+          )
+          this._inputs_.set(hash, target)
+          mark.remove()
+        }
+    )
+
+    return fragment
+  }
+}
+```
+
+
+**在线示例**
+>- [数据绑定](https://es6.ihint.me/BSXml/databind/)
+
+## 2.4 渲染与交互总结
+
+渲染与交互流程：
+![工作流程](https://i.loli.net/2018/09/12/5b98f430cdd9f.jpg)
+
+----
+
+# 3. 附加功能设计
+
+## 3.1 核心流程
+
+```js
+const run = (
+    template, target, {
+      dataset = {},
+      functions = {},
+      init = new Function(),
+      next = new Function()
+    } = {}) => {
+  
+  const parser = new Parser(template)
+  const renderer = new Renderer(parser, {
+    dataset, functions
+  })
+  init()
+  renderer.render().paint(target)
+  next()
+}
+```
+
+在核心流程中，额外添加了两个钩子，分别是在渲染之前会被调用的`init()`和它装载到页面之后调用的`next()`。
+
+## 3.2 BSXml 类封装
+
+现在，将以上所有的工作封装在一个类中，以对外暴露。
+```js
+import Parser from './Parser.js'
+import Renderer from './Renderer.js'
+import BSFetch from './BSFetch.js'
+
+export default class BSXml {
+  static start(
+      templateNodes = [], {
+        dataset = {},
+        functions = {},
+        init = new Function(),
+        next = new Function()
+      } = {}) {
+    
+    if (init instanceof Function) {
+      init()
+    } else {
+      throw new Error('init should be a function')
+    }
+    
+    if (!(next instanceof Function)) {
+      throw new Error('next should be a function')
+    }
+    
+    if (!Array.isArray(templateNodes)) {
+      throw new Error('templateNodes should be an array')
+    } else {
+      let NEXT = () => {
+        // user's next function
+        next()
+      }
+      
+      // generate NEXT.next() function
+      // real next() will be called after all templateNodes have been showRendered
+      for (let i = 0; i < templateNodes.length; i++) {
+        NEXT = {
+          NEXT,
+          next() {
+            if (this.NEXT.NEXT) {
+              this.NEXT = this.NEXT.NEXT
+            } else {
+              this.NEXT()
+            }
+          }
+        }
+      }
+      
+      new Array().forEach.call(
+          templateNodes,
+          async templateNode => {
+            if (templateNode) {
+              let realTemplateNode = null
+              
+              // detect templateNode is string (name of BSX) or HTMLElement (node of BSX)
+              if (templateNode instanceof HTMLElement) {
+                if (templateNode.tagName === 'BSX') {
+                  realTemplateNode = templateNode
+                } else {
+                  throw new Error(`found a node whose tagName is not BSX`)
+                }
+              } else {
+                try {
+                  realTemplateNode = document.querySelector(`BSX[name=${templateNode.trim()}]`)
+                } catch (e) {
+                }
+                if (realTemplateNode === null) {
+                  throw new Error(`cannot find a node named ${templateNode}`)
+                }
+              }
+              
+              // fetch template (.bsx file)
+              await TmplLoader.load(realTemplateNode)
+              
+              // fetch dataset
+              let realDataset = await DataLoader.load(realTemplateNode) || {}
+              
+              run(realTemplateNode.innerHTML, realTemplateNode, {
+                dataset: Object.assign(
+                    realDataset,
+                    dataset
+                ),
+                functions,
+                next: () => {
+                  NEXT.next()
+                }
+              })
+            }
+          })
+    }
+  }
+}
+
+class TmplLoader {
+  static async load(realTemplateNode) {
+    if (realTemplateNode.getAttribute('link') && !realTemplateNode.getAttribute('ignore-link')) {
+      const link = realTemplateNode.getAttribute('link').trim()
+      await BSFetch.get(link, {
+        restype: 'text'
+      }).then(text => {
+        realTemplateNode.innerHTML = text
+      }).catch(() => {
+        throw new Error(`cannot fetch template from ${link}`)
+      })
+      realTemplateNode.setAttribute('ignore-link', 'true')
+    }
+  }
+}
+
+class DataLoader {
+  static async load(realTemplateNode) {
+    if (realTemplateNode.getAttribute('data')) {
+      const data = realTemplateNode.getAttribute('data').trim()
+      try {
+        return await BSFetch.get(data)
+      } catch (e) {
+        throw new Error(`cannot fetch dataset from ${data}`)
+      }
+    }
+  }
+}
+```
+
+这里添加了对于模板文件和数据集的加载实现，可以使模板文件抽离页面变成资源文件。
+
+**使用方法**
+```html
+<body>
+  <style>
+    BSX {
+      display: none;
+    }
+  </style>
+  <BSX
+    name="page"
+    keep="true"
+    link="tmpl.bsx"
+    data="data.json"
+  >
+  </BSX>
+  <script type="module">
+    import BSXml from './BSXml.js'
+
+    BSXml.start(['page'], {
+      init() {
+        console.log('BSXml will work.')
+      }, next() {
+        console.log('All done.')
+      }, dataset: {
+        key: 'value'
+      }, functions: {
+        callback({dataset, inputs, event, target}) {
+          // function here
+        }
+      }
+    })
+  </script>
+</body>
+```
+
+**在线示例**
+>- [BSXml - Template](https://es6.ihint.me/BSXml/template/)
+
+*iHint-Pages 就是用 BSXml 实现的，源码：[Github](https://github.com/BlueSky-07/bluesky-07.github.io/tree/master/release)*
+
+----
+
+## 4. 总结
+
+到此为止，全部的有关模板的部分就结束了。整体来看，整个流程采用的是管道编程，对 **BSXml** 语法进行有序的一系列操作来完成编译、渲染、注册事件、绑定输入，最终将其装载到页面上。整个工作的核心在于初次加载，而不考虑更新。
+
+有关基于 **BSXml** 的组件设计部分可以继续阅读 [BSXml-Component](?BSXml-Component)。
+
+----
+
+# 5. 未来计划
+## 5.1 使用 Service Worker
+
+由于很多 **js** 文件是相同的，所以应该使用`Service Worker`来节省流量，减少页面在首次载入时的网络请求量。
+
+**参考阅读**
+>- [使用 Service Workers](https://developer.mozilla.org/zh-CN/docs/Web/API/Service_Worker_API/Using_Service_Workers) <small>*developer.mozilla.org*</small>
+
+## 5.2 提高编译性能
+
+目前在解析 **BSXml** 语法效率其实比较低，而且大量使用了正则表达式，这是非常影响性能的。而且在注册事件与绑定输入的时候采用的是全局搜索并遍历，实现不够优雅。
+
+## 5.3 转义语法
+
+目前没办法在文字部分转义关键字，主要是没有想好怎么设计这个语法，所以没有实现。
+
+## 5.4 提高扩展性
+
+目前的业务彼此之间耦合比较高，而且实现过程中扩展性不佳，增加新功能不够灵活。需要好好的重新设计一下架构，主要是为了提高各个模块的以及彼此之间的扩展性。
+
+## 5.5 编译插件
+
+实现一个`webpack`插件，完成对于模板的提前编译，来解决实时编译的不可预料的因素，比如客户端网络状况、处理器性能等。

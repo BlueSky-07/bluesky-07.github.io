@@ -1,7 +1,7 @@
 /**
  * iHint-Pages Javascipt
  * @BlueSky
- * Version Alpha, 0.3
+ * Version Alpha, 0.4
  * https://github.com/BlueSky-07/bluesky-07.github.io
  */
 

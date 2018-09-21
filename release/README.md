@@ -1,6 +1,6 @@
 # iHint-Pages
 
-`release 0.3`
+`release 0.4`
 
 ## get your own github.io with iHint-Pages
 
@@ -20,12 +20,12 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
   "md_link": "index",                                                     // location of index.md, modify it if necessary
   "title": "Index",                                                       // title of the page
   "author": "BlueSky",                                                    // your name
-  "release_date": "2018/8/8",                                             // date of publishing index.md
+  "release_date": "2018/8/8",                                             // date of first posting index.md
   "update_date": "2018/8/8",                                              // date of last updating index.md
   "version": "8",                                                         // times of modifying index.md
   "banner_link": "https://i.loli.net/2018/08/09/5b6c0db91bba5.jpg",       // url of picture in banner
   "banner_from": "JOHN TOWNER, https://unsplash.com/photos/p-rN-n6Miag",  // information of picture, like origin url, photographer, location etc.
-  "keywords": [                                                           // keep [] if do not have keywords
+  "keywords": [                                                           // keep [] if keywords is none
     "ihint.me", "github.com/BlueSky-07"                                   // keywords, format of array
   ] 
 }
@@ -36,7 +36,7 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 7. `git add .` -> `git commit -m'index'` -> `git push`
 
-## publish a new article
+## post a new article
 
 1. copy your `article.md` into `articles/`
 
@@ -48,12 +48,12 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
   "md_link": "your-article-filename",                                     // drop .md extension
   "title": "title",                                                       // title of the article
   "author": "BlueSky",                                                    // your name
-  "release_date": "2018/8/8",                                             // date of publishing this article
+  "release_date": "2018/8/8",                                             // date of first posting this article
   "update_date": "2018/8/8",                                              // date of last updating this article
   "version": "8",                                                         // times of modifying this article
   "banner_link": "https://i.loli.net/2018/08/09/5b6c0db91bba5.jpg",       // url of picture in banner
   "banner_from": "JOHN TOWNER, https://unsplash.com/photos/p-rN-n6Miag",  // information of picture, like origin url, photographer, location etc.
-  "keywords": [                                                           // keep [] if do not have keywords
+  "keywords": [                                                           // keep [] if keywords is none
     "ihint.me", "github.com/BlueSky-07"                                   // keywords, format of array
   ]
 }
@@ -64,7 +64,21 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 5. `git add .` -> `git commit -m'a new article'` -> `git push`
 
-## update log
+## ChangeLog
+
+#### 2018/9/21 v0.4
+
+**NEW**
+1. <del>NONE</del>
+
+**CHANGE**
+1. remove the animation of header on mobile phone
+
+**FIX**
+1. <del>NONE</del>
+
+**KNOWN BUG**
+1. <del>NONE</del>
 
 #### 2018/8/14 v0.3
 

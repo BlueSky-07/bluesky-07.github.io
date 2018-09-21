@@ -1,7 +1,7 @@
 /**
  * iHint-Pages Style Sheet
  * @BlueSky
- * Version Alpha, 0.3
+ * Version Alpha, 0.4
  * https://github.com/BlueSky-07/bluesky-07.github.io
  */
 
@@ -32,7 +32,6 @@ body {
   border-bottom: #000 solid 0.05em;
   border-bottom-left-radius: 0.125em;
   border-bottom-right-radius: 0.125em;
-  box-shadow: 0 0.5em 0.85em #333;
   margin: auto;
   padding: 1.5em 1.5em 1em 0;
   background: linear-gradient(to top right, #111, #333);
@@ -132,7 +131,6 @@ body {
 
 .article-container .content-container {
   min-width: 20em;
-  width: 90%;
   z-index: 1;
   margin: auto;
 }
@@ -353,25 +351,43 @@ img::selection {
   .article-container .header-container {
     width: 90%;
     margin: 1em auto 0;
+    box-shadow: 0 0.5em 0.85em #333;
   }
+
+  .article-container .content-container {
+    width: 90%;
+  }
+
   .content img {
     border: none;
     box-shadow: 0 0 0.25em #444;
   }
+
   .content img:hover {
     border: none;
     box-shadow: 0 0 0.25em #000;
   }
+
   .content img:active {
     border: none;
     cursor: pointer;
   }
+
   .header-container .author {
     font-size: 3em;
   }
+
   .content pre {
     width: max-content;
     width: -moz-max-content;
+  }
+
+  .header-out {
+    animation: header-fadeOutUp 0.25s 0s 1 both;
+  }
+
+  .header-in {
+    animation: header-fadeInDown 0.25s 0s 1 both;
   }
 }
 
@@ -380,6 +396,7 @@ img::selection {
     opacity: 0.5;
     transform: translate3d(0, -1em, 0);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -391,6 +408,7 @@ img::selection {
     opacity: 0;
     transform: translate3d(0, -100%, 0);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -401,6 +419,7 @@ img::selection {
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
     transform: translate3d(0, -100%, 0);
@@ -411,12 +430,4 @@ img::selection {
 
 .content {
   animation: content-fadeInDown 1s 0s 1 both;
-}
-
-.header-out {
-  animation: header-fadeOutUp 0.25s 0s 1 both;
-}
-
-.header-in {
-  animation: header-fadeInDown 0.25s 0s 1 both;
 }

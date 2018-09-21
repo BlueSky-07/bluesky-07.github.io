@@ -549,4 +549,4 @@ export default BSBind
 </body>
 ```
 
->- [在线示例页面](https://es6.ihint.me/BSBind_v0.1/index.html)
+>- [在线示例页面](https://es6.ihint.me/BSBind/index.html)

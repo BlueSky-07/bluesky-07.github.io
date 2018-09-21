@@ -494,4 +494,467 @@ class BSComponent {
 
 **在线地址**
 
->- [todo](https://es6.ihint.me/todo/#/) 
+>- [todo](https://es6.ihint.me/todo/#/)（[源码](https://github.com/BlueSky-07/ES-6/tree/master/test/BSXml/todo)）
+
+
+
+## 2.1 界面与组件
+
+![界面](https://i.loli.net/2018/09/21/5ba456a65c1a2.png)
+
+由此可以得到三个组件：
+![组件](https://i.loli.net/2018/09/21/5ba45657acab4.png)
+
+## 2.2 组件设计
+
+先不做页面路由，**HTML** 页面：
+```html
+<body>
+<div id="app">
+  <div id="loading" style="display: flex; justify-content: center; align-items: center; height: 20em;">
+    <h2>Loading...</h2>
+  </div>
+</div>
+</body>
+```
+
+### 2.2.1 Main.js
+
+接下来先设计主界面：
+```js
+import BSComponent from '//node.com/modules/BSXml/BSComponent.js'
+import Timeline from './timeline/Timeline.js'
+import Viewer from './viewer/Viewer.js'
+import Console from './console/Console.js'
+
+export default class Main extends BSComponent {
+  constructor() {
+    super()
+    this.template = `
+      div #main-panel {
+        @Timeline timeline
+        @Viewer viewer
+        @Console console
+      }
+    `
+    this.need = {
+      Timeline, Viewer, Console
+    }
+    this.listen = {
+      view: (signal) => {
+        this.components.viewer.refresh('load', signal)
+      },
+      'new-timepoint': (signal) => {
+        this.components.timeline.refresh('add', signal.timepoint)
+      },
+      'system-out': (signal) => {
+        this.components.console.refresh('system-out', signal.message, signal.style)
+      },
+      finish: (signal) => {
+        this.components.timeline.refresh('finish', signal.id)
+      }
+    }
+    this.style = `
+      body {
+        margin: 0;
+        background-color: #eee;
+      }
+      
+      bsxc {
+        display: none;
+      }
+      
+      *::selection {
+        background-color: transparent;
+      }
+    `
+  }
+  
+  refresh(command, ...args) {
+    switch (command) {
+      case 'show':
+        this.components.viewer.refresh('hide')
+        this.el.hidden = ''
+        break
+      default:
+        super.refresh()
+    }
+  }
+  
+  afterPaint() {
+    this.components.console.refresh('focus')
+  }
+}
+```
+
+这里，主界面组件注册了 4 个信号监听函数：
+
+1. `view`：用于显示预览区。
+1. `new-timepoint`：用于显示新创建的标签。
+1. `system-out`：用于在控制台输出。
+1. `finish`：用于将已完成的标签移除。
+
+这里体现了组件设计的原则之一：
+
+**父组件控制子组件的显示**：避免子组件控制另一个子组件的显示，而是向父组件发送信号，然后由父组件去控制子组件的显示。也就是要保证，一个组件只能控制自己或它子组件的显示。
+
+### 2.2.2 timeline/Timeline.js
+
+然后设计标签区组件：
+
+```js
+import BSComponent from '//node.com/modules/BSXml/BSComponent.js'
+import TimePoint from './TimePoint.js'
+import DataLoader from '../../utils/DataLoader.js'
+
+export default class Timeline extends BSComponent {
+  constructor(timepoints = []) {
+    super()
+    this.template = `
+      div #timeline .timeline {
+        div .timeline-container {
+          @if({{$timepoints.length}}) {
+            @for({{$timepoints}}) {
+              @TimePoint tp-{{$item.id}} {{encodeURI($item.id)}} {{encodeURI($item.date)}} {{encodeURI($item.title)}}
+            }
+          }
+          div #empty .timeline-empty {
+            ~ hidden {{$timepoints.length ? 'hidden' : ''}}
+            h1 {
+              All Done
+            }
+          }
+        }
+        div #trash .trash {
+          ~ hidden hidden
+          
+          ! dragover willDelete
+          ! dragleave cancelDelete
+          ! drop delete
+        }
+      }
+    `
+    this.dataset = {
+      timepoints
+    }
+    this.need = {
+      TimePoint
+    }
+    this.listen = {
+      'trash-show': ({offsetX, offsetY}) => {
+        this.refresh('trash-show', offsetX, offsetY)
+      },
+      'trash-hide': () => {
+        this.refresh('trash-hide')
+      }
+    }
+    this.functions = {
+      willDelete: ({event}) => {
+        event.preventDefault()
+        this.refresh('trash-hover')
+      },
+      cancelDelete: () => {
+        this.refresh('trash-leave')
+      },
+      delete: ({event}) => {
+        this.refresh('finish', event.dataTransfer.getData('id'), false)
+      }
+    }
+    this.style = `
+      .timeline {
+        width: 100%;
+        height: 25em;
+        background: #fafafa;
+        box-shadow: #333 0 0 1em;
+      }
+      
+      .timeline-container {
+        width: 90%;
+        height: 100%;
+        margin: auto;
+        overflow-x: auto;
+        overflow-y: hidden;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      
+      .timeline-empty {
+        width: 100%;
+        text-align: center;
+        font-size: 2em;
+        color: #aaa;
+        user-select: none;
+      }
+      
+      .timeline-container::-webkit-scrollbar {
+        height: 0.36em;
+        background-color: transparent;
+      }
+      
+      .timeline-container::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.36);
+        border-bottom-left-radius: 5em;
+        border-bottom-right-radius: 5em;
+        background-color: #fff;
+      }
+      
+      .timeline-container::-webkit-scrollbar-thumb {
+        border-radius: 1em;
+        box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.36);
+        background-color: #ccc;
+      }
+      
+      .timepoint {
+        min-height: 10em;
+        max-height: 20em;
+        margin-right: 2em;
+        padding: 0.75em;
+        border-left: 0.05em solid #000;
+        writing-mode: vertical-lr;
+        cursor: pointer;
+        user-select: none;
+        border-top-right-radius: 0.5em;
+      }
+      
+      .timepoint:hover {
+        background-color: #eee;
+      }
+      
+      .timepoint .title {
+        text-align: right;
+        font-size: 2em;
+      }
+      
+      .timepoint .date {
+        font-weight: lighter;
+      }
+      
+      .trash {
+        background-image: url('img/trash.png');
+        background-size: cover;
+        position: fixed;
+        top: 21em;
+        left: 1em;
+        width: 32px;
+        height: 32px;
+      }
+      
+      .trash-dragover {
+        background-image: url('img/trash.png'), linear-gradient(#f00, #ffb000);
+        background-blend-mode: lighten;
+      }
+    `
+  }
+  
+  async beforeRender() {
+    this.read({
+      timepoints: (await DataLoader.getTimeline()).sort((a, b) => {
+        return new Date(a.date).getTime() - new Date(b.date).getTime()
+      })
+    })
+  }
+  
+  afterPaint() {
+    this.els = {
+      trash: this.$el('#trash')
+    }
+  }
+  
+  refresh(command, ...args) {
+    switch (command) {
+      case 'trash-show': {
+        const offsetX = args[0] || 16
+        const offsetY = (args[1] || 21 * 16) - pageYOffset
+        const finalY = offsetY > 21 * 16 ? 21 * 16 : offsetY
+        this.els.trash.hidden = ''
+        this.els.trash.style.left = offsetX - 16 + 'px'
+        this.els.trash.style.top = finalY + 16 + 'px'
+        break
+      }
+      case 'trash-hide': {
+        this.els.trash.hidden = 'hidden'
+        this.els.trash.style.left = '1em'
+        this.els.trash.style.top = '21em'
+        this.els.trash.classList.remove('trash-dragover')
+        break
+      }
+      case 'trash-hover': {
+        this.els.trash.classList.add('trash-dragover')
+        break
+      }
+      case 'trash-leave': {
+        this.els.trash.classList.remove('trash-dragover')
+        break
+      }
+      case 'add': {
+        const timepoint = args[0]
+        DataLoader.addTimepoint(timepoint)
+            .then(json => {
+              if (json.status === 'Success') {
+                this.notify({
+                  signal: 'system-out',
+                  message: `[SYNC-ADDED]\n`,
+                  style: 'default'
+                })
+                super.refresh()
+              } else {
+                throw 'Failure'
+              }
+            })
+            .catch(() => {
+              this.notify({
+                signal: 'system-out',
+                message: `[SYNC-ERROR]: Fail to add, check network\n`,
+                style: 'default'
+              })
+            })
+        break
+      }
+      case 'finish': {
+        const id = args[0]
+        const notNotify = args[1] || true
+        const tpCom = this.components['tp-' + id]
+        tpCom.refresh('drop')
+        this.refresh('trash-hide')
+        delete this.components['tp-' + id]
+        const timepoint = this.dataset.timepoints.filter(tp => String(tp.id) === String(id))[0]
+        this.read({
+          timepoints: this.dataset.timepoints.filter(tp => String(tp.id) !== String(id))
+        })
+        if (this.dataset.timepoints.length === 0) {
+          this.refresh()
+        }
+        if (!notNotify) {
+          this.notify({
+            signal: 'system-out',
+            message: `[DROP] ${timepoint.title}
+                   Due: ${new Date(timepoint.date).toLocaleString()}
+                   ${timepoint.content ? 'Detail: ' + timepoint.content + '\n' : ''}`,
+            style: 'drop'
+          })
+        }
+        DataLoader.deleteTimepointById(id)
+            .then(() => {
+              this.notify({
+                signal: 'system-out',
+                message: `[SYNC-DROPPED]\n`,
+                style: 'default'
+              })
+            })
+            .catch(() => {
+              this.notify({
+                signal: 'system-out',
+                message: `[SYNC-ERROR]: Fail to drop, check network\n`,
+                style: 'default'
+              })
+            })
+        break
+      }
+      default:
+        super.refresh()
+    }
+  }
+}
+```
+
+在模板中，用循环和组件初始化语法来初始化标签组件(**@TimePoint**)，参数依次写在子组件名后面，以空格隔开。具体语法参考[这里](#1-4-)。
+
+关于组件的设计原则：
+1. 组件的样式中包含页面中仅出现一次的样式，以及页面中可能会有多个同类子组件的通用样式。这也是对于当前组件样式不能独立编译的无奈之举，具体可以看[这里](#1-10-2-)。
+1. 关于组件的更新时机：在`functions`中的函数里只处理数据，然后传递给`refresh()`，交由其去处理组件的更新。在`refresh`中，预先设计全部允许的组件更新命令，包括需要传入的参数、如何更新等等。这也是对于当前组件[没有状态](#1-10-4-)、组件的[无权限控制](#1-10-3-)的弥补操作，实践的时候参考了 **Flux** 的设计思想。
+1. 组件的更新一定要尽最大努力避免使用原始的`refresh()`方法，它的实现请看[这里](#1-7-)。
+
+**参考资料**
+
+>- [Flux 架构入门教程](http://www.ruanyifeng.com/blog/2016/01/flux.html) <small>ruanyifeng.com</small>
+
+标签区组件的设计还包含了拖拽来删除标签的功能，这个功能不作为单个标签组件的子组件设计，因为在一个时刻内只能拖拽一个标签，因此可以作为标签区组件的一个元素，可以减少页面的元素、事件数量，提升性能。
+
+为此，增加一些关于垃圾箱图标的更新方法，通过计算目标标签的位置来将其移动或控制是否显示，最终只需要一个垃圾桶元素就能完成所有标签的拖拽删除功能。
+
+关于数据的处理，使用了一个`DataLoader`类，它负责所有数据的读写请求。实现的时候参考了 **Java** 中的接口设计，可以对于不同的数据源编写具体内容不同，但是方法名相同的数据请求方法，来方便切换数据源。
+
+### 2.2.3 timeline/TimePoint.js
+
+现在来设计标签组件：
+
+```js
+import BSComponent from '//node.com/modules/BSXml/BSComponent.js'
+import {router} from '../../app.js'
+import DateFormatter from '../../utils/DateFormatter.js'
+
+export default class TimePoint extends BSComponent {
+  constructor(id = 0, date = new Date('2000/1/1').getTime(), title = '') {
+    super()
+    id = decodeURI(id)
+    date = DateFormatter.format(decodeURI(date))
+    title = decodeURI(title)
+    this.template = `
+      div .timepoint .timepoint-in {
+        ! click view
+        ~ draggable true
+        ! dragstart willDelete
+        ! dragend cancelDelete
+        
+        div #title .title {
+          {{$title}}
+        }
+        div #date .date {
+          {{$date}}
+        }
+      }
+    `
+    this.dataset = {
+      id, date, title
+    }
+    this.functions = {
+      view({$this, dataset}) {
+        router.gotoRouter('/view/' + dataset.id)
+      },
+      willDelete({$this, event, dataset}) {
+        const offsetX = event.target.offsetLeft + event.target.offsetWidth / 2
+        const offsetY = event.target.offsetTop + event.target.offsetHeight
+        $this.notify({
+          signal: 'trash-show', offsetX, offsetY
+        })
+        event.dataTransfer.setData('id', dataset.id)
+      },
+      cancelDelete({$this}) {
+        $this.notify('trash-hide')
+      }
+    }
+  }
+  
+  refresh(command, ...args) {
+    switch (command) {
+      case 'drop': {
+        this.el.classList.remove('timepoint-in')
+        this.el.classList.add('timepoint-out')
+        setTimeout(() => {
+          this.el.hidden = 'hidden'
+        }, 500)
+        break
+      }
+      default:
+        super.refresh()
+    }
+  }
+}
+```
+
+一个标签组件在被拖拽的时候，会向父组件发送信号来显示垃圾桶图标，完成父子组件的通信功能。关于组件间的通信可以看[这里](#1-8-)。
+
+### 2.2.4 其他组件
+
+此篇文章主要是为了介绍组件的设计原则，所以有关其他组件的设计细节可以查看[源码](https://github.com/BlueSky-07/ES-6/tree/master/test/BSXml/todo)。
+
+## 2.3 总结
+
+关于组件设计的原则，现归纳如下：
+
+1. 组件最终产生一个根节点，以使用元素选择器。
+1. 预先设置所有可能的更新操作，重写`refresh()`方法。
+1. 在`functions`中处理数据，在`refresh`中处理视图。
+1. 一个组件只负责自己的显示，也可以调用子组件的`refresh(command)`去让子组件更新它的显示。
+1. 跨组件的通信通过向父组件发送信号，交由父组件控制。

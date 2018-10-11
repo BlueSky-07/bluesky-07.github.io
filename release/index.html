@@ -5,11 +5,15 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>iHint-Pages</title>
-  <link rel="stylesheet" href="static/css/BSXml.css">
-  <link rel="stylesheet" href="static/css/ihint-pages.css">
-  <link rel="stylesheet" href="static/css/monokai-sublime.css">
+  <link rel="stylesheet" href="static/css/ihint-pages.min.css">
+  <link rel="stylesheet" href="static/css/monokai-sublime.min.css">
 </head>
 <body>
+<style>
+  BSX {
+    display: none;
+  }
+</style>
 <BSX
     name="loading"
     link="static/bsx/loading.bsx"
@@ -22,8 +26,12 @@
     name="footer"
     link="static/bsx/footer.bsx"
 ></BSX>
-<script src="//cdnjs.cloudflare.com/ajax/libs/marked/0.4.0/marked.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script src="static/js/ihint-pages.js" type="module"></script>
+<img src="https://api.ihint.me/statistics.php?site=pages" style="display: none;">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.4.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.0.0/polyfill.min.js"></script>
+<script src="static/js/libs.min.js"></script>
+<script src="static/js/BSXml.min.js"></script>
+<script src="static/js/ihint-pages.min.js"></script>
 </body>
 </html>

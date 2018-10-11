@@ -1,12 +1,10 @@
 /**
- * iHint-Pages Javascipt
+ * iHint-Pages Javascript
  * @BlueSky
- * Version Alpha, 0.4
+ * Version Alpha, 0.5
  * https://github.com/BlueSky-07/bluesky-07.github.io
  */
 
-import BSXml from "./BSXml-2.2.js"
-import BSFetch from "./BSFetch-1.1.js"
 const $ = document.querySelector.bind(document)
 const $$ = document.querySelectorAll.bind(document)
 

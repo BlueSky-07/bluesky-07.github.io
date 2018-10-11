@@ -100,9 +100,9 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 #### 2018/8/11 v0.1
 
 **NEW**
-1. load config from `.json`, load page from `.md` accroding to url`?title`
-1. responsive UI, support most morden broswers of all platfroms, but not support any IE. ANY IE WILL NEVER BE CONSIDERED FOR SUPPORT.
-1. support code highlight, use theme of Monokai Sublime
+1. load config from `.json`, load page from `.md` according to url`?title`
+1. responsive UI, support most modern browsers of all platforms, but not support any IE. ANY IE WILL NEVER BE CONSIDERED FOR SUPPORT.
+1. support code highlight, use theme of Monokai-Sublime
 1. `Page Not Found` will be showed when fail to read `.json`
 1. other awesome features can be found after you installing it
 

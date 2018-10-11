@@ -1,6 +1,6 @@
 # iHint-Pages
 
-`release 0.4`
+`release 0.5`
 
 ## get your own github.io with iHint-Pages
 
@@ -66,34 +66,24 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 ## ChangeLog
 
-#### 2018/9/21 v0.4
+#### 2018/10/11 v0.5
 
-**NEW**
-1. <del>NONE</del>
+**CHANGE**
+1. use packed js instead of ES6 module import for better browser compatibility
+
+----
+#### 2018/9/21 v0.4
 
 **CHANGE**
 1. remove the animation of header on mobile phone
 
-**FIX**
-1. <del>NONE</del>
-
-**KNOWN BUG**
-1. <del>NONE</del>
-
+----
 #### 2018/8/14 v0.3
-
-**NEW**
-1. <del>NONE</del>
 
 **CHANGE**
 1. update js lib: BSFetch v1.1
 
-**FIX**
-1. <del>NONE</del>
-
-**KNOWN BUG**
-1. <del>NONE</del>
-
+----
 #### 2018/8/11 v0.2
 
 **NEW**
@@ -102,9 +92,6 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 **CHANGE**
 1. header's width set as 90%, margin-top set as 1em when using desktop broswers
-
-**FIX**
-1. <del>NONE</del>
 
 **KNOWN BUG**
 1. Microsoft Edge will keep a empty block on the top when scroll down
@@ -118,12 +105,6 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 1. support code highlight, use theme of Monokai Sublime
 1. `Page Not Found` will be showed when fail to read `.json`
 1. other awesome features can be found after you installing it
-
-**CHANGE**
-1. <del>NONE</del>
-
-**FIX**
-1. <del>NONE</del>
 
 **KNOWN BUG**
 1. Microsoft Edge will always set the width of `pre` as full but not `max-content`

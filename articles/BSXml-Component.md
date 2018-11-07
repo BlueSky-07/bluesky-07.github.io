@@ -2,7 +2,7 @@
 
 在 Github 上查看 [源码](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSXml) [测试](https://github.com/BlueSky-07/ES-6/tree/master/test/BSXml)
 
-`Broswer-Slim-Xml` `v3.5`
+`Broswer-Slim-Xml-Component` `v3.6`
 
 一个前端开发框架的简单实现。该工具仅用作学习用途，如需在实际环境中使用还需要更多的测试与完善。
 
@@ -23,7 +23,7 @@
 
 为了节省篇幅，这里先把所有的属性值罗列如下，具体会在后文陆续介绍：
 
-![属性值](https://i.loli.net/2018/09/17/5b9f1cc53d8ab.jpg)
+![属性值](https://i.loli.net/2018/11/07/5be2844833159.jpg)
 
 其中，与模板相关的属性值部分作用及用法与 **BSXml** 模板引擎部分介绍的一致。其中新增了`style`，该属性表示组件的 **CSS 样式**，在编译的时候会将其转换成`<style>`标签。
 
@@ -47,10 +47,12 @@ export default class BSComponent {
     this.parent = null
     this.context = {}
     
-    this.hash = uuid()
+    this.uuid = uuid().slice(0, 8)
     this.el = null
     this.$el = null
     this.$$el = null
+    this.$_start = null
+    this.$_end = null
   }
 }
 ```
@@ -105,7 +107,7 @@ class BSComponent {
     })
     
     this.styleBlock = BSElement.createStyleBlock(this.style)
-    this.blockMark = BSElement.createComponentBlockMark(this.hash)
+    this.blockMark = BSElement.createComponentBlockMark(this.uuid)
     
     Object.entries(this.listen).forEach(([signal, callback]) => {
       if (signal.startsWith('_')) {
@@ -121,7 +123,7 @@ class BSComponent {
 这里将`template`属性与`renderer`的`template`双向绑定，以便在组件的模板变化后重新编译时读入的是更新后的模板。关于模板的渲染原理可以查看这篇文章：[BSXml-Template](?BSXml-Template) 。
 
 同时，在初始化方法中，又新添加了两个属性：
-1. `styleBlock`：将`style`属性保存的 **CSS** 样式转换成`<script>`标签。
+1. `styleBlock`：将`style`属性保存的 **CSS** 样式转换成`<style>`标签。
 1. `blockMark`：用于标记当前组件的在文档中的开始与结束的位置。
 
 那么，在之前的`BSElement`类中添加这两个方法：
@@ -129,8 +131,8 @@ class BSComponent {
 class BSElement {
   ......
   
-  static createComponentBlockMark(hash) {
-    return new BSElement('bsxc', {hash})
+  static createComponentBlockMark(uuid) {
+    return new BSElement('bsxc', {uuid})
   }
   
   static createStyleBlock(styles) {
@@ -358,9 +360,24 @@ class BSComponent {
         })
         .then(fragment => {
           fragment.paint(target, type)
-          this.el = document.querySelector(`bsxc[hash='${this.hash}']`).nextElementSibling
+          this.el = document.querySelector(`bsxc[uuid='${this.uuid}']`).nextElementSibling
           this.$el = this.el.querySelector.bind(this.el)
           this.$$el = this.el.querySelectorAll.bind(this.el)
+          return 'OK'
+        })
+        .then(() => {
+          this.$_start = null
+          this.$_end = null
+          new Array().forEach.call(document.querySelectorAll(`bsxc[uuid='${this.uuid}']`), bsxc => {
+            const uuid = bsxc.getAttribute('uuid')
+            const comment = window.document.createComment(`BSXC[${uuid}]: ${this.constructor.name}`)
+            bsxc.parentNode.replaceChild(comment, bsxc)
+            if (!this.$_start) {
+              this.$_start = comment
+            } else if (!this.$_end) {
+              this.$_end = comment
+            }
+          })
           return 'OK'
         })
         .then(async () => {
@@ -395,14 +412,13 @@ class BSComponent {
           return await this.beforeRefresh()
         })
         .then(() => {
-          const start = document.querySelector(`bsxc[hash='${this.hash}']`)
-          let next = start.nextSibling
-          while (next.tagName !== 'BSXC' || !(next instanceof HTMLElement) || next.getAttribute('hash') !== this.hash) {
+          let next = this.$_start.nextSibling
+          while (next !== this.$_end) {
             next.remove()
-            next = start.nextSibling
+            next = this.$_start.nextSibling
           }
           next.remove()
-          this.paint(start, 'replace')
+          this.paint(this.$_start, 'replace')
           return 'OK'
         })
         .then(async () => {
@@ -460,7 +476,7 @@ class BSComponent {
 1. 对于组件的初次渲染，同时要渲染子组件。
 1. 在实例化子组件的时候处理组件之间的关系。
 1. 组件间的通信，基于信号机制。
-1. 组件的更新，需要自己重写高效的更新方法。
+1. 组件的更新，需要自己重写高效的更新方法，避免使用默认的更新方法。
 
 ## 1.10 未来计划
 
@@ -468,7 +484,7 @@ class BSComponent {
 
 由于策略的选择，包括组件的渲染、渲染后的事件注册、输入的绑定，渲染一个组件最终产生的是 **DocumentFragment** 实例，而不是一个虚拟 **DOM** 实例，所以类似于基于常见框架的 **diff** 算法的组件更新暂时没有实现的思路。后续有重构计划的时候会考虑妥善处理流程，最终实现类似的更新方法。
 
-而且，为了实现这个组件的默认更新方法，对于每个组件增加了前后的开始结束标记节点，污染了文档。如果重新架构的话也要对于组件的定位采取新的策略。
+<del><small>而且，为了实现这个组件的默认更新方法，对于每个组件增加了前后的开始结束标记节点，污染了文档。如果重新架构的话也要对于组件的定位采取新的策略。</small></del>在 3.6 版本中已将所有的标记节点换成了注释节点。
 
 ### 1.10.2 为每个组件生成独特的样式
 
@@ -558,10 +574,6 @@ export default class Main extends BSComponent {
       body {
         margin: 0;
         background-color: #eee;
-      }
-      
-      bsxc {
-        display: none;
       }
       
       *::selection {
@@ -661,89 +673,8 @@ export default class Timeline extends BSComponent {
       }
     }
     this.style = `
-      .timeline {
-        width: 100%;
-        height: 25em;
-        background: #fafafa;
-        box-shadow: #333 0 0 1em;
-      }
-      
-      .timeline-container {
-        width: 90%;
-        height: 100%;
-        margin: auto;
-        overflow-x: auto;
-        overflow-y: hidden;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-      }
-      
-      .timeline-empty {
-        width: 100%;
-        text-align: center;
-        font-size: 2em;
-        color: #aaa;
-        user-select: none;
-      }
-      
-      .timeline-container::-webkit-scrollbar {
-        height: 0.36em;
-        background-color: transparent;
-      }
-      
-      .timeline-container::-webkit-scrollbar-track {
-        box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.36);
-        border-bottom-left-radius: 5em;
-        border-bottom-right-radius: 5em;
-        background-color: #fff;
-      }
-      
-      .timeline-container::-webkit-scrollbar-thumb {
-        border-radius: 1em;
-        box-shadow: inset 0 0 0.5em rgba(0, 0, 0, 0.36);
-        background-color: #ccc;
-      }
-      
-      .timepoint {
-        min-height: 10em;
-        max-height: 20em;
-        margin-right: 2em;
-        padding: 0.75em;
-        border-left: 0.05em solid #000;
-        writing-mode: vertical-lr;
-        cursor: pointer;
-        user-select: none;
-        border-top-right-radius: 0.5em;
-      }
-      
-      .timepoint:hover {
-        background-color: #eee;
-      }
-      
-      .timepoint .title {
-        text-align: right;
-        font-size: 2em;
-      }
-      
-      .timepoint .date {
-        font-weight: lighter;
-      }
-      
-      .trash {
-        background-image: url('img/trash.png');
-        background-size: cover;
-        position: fixed;
-        top: 21em;
-        left: 1em;
-        width: 32px;
-        height: 32px;
-      }
-      
-      .trash-dragover {
-        background-image: url('img/trash.png'), linear-gradient(#f00, #ffb000);
-        background-blend-mode: lighten;
-      }
+      /* 此处省略组件样式 */
+      ......
     `
   }
   

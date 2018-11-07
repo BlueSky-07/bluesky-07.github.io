@@ -1,5 +1,7 @@
-[Markdown: Basics](https://daringfireball.net/projects/markdown/basics)
+Markdown: Basics
 ================
+
+[https://daringfireball.net/projects/markdown/basics](https://daringfireball.net/projects/markdown/basics)
 
 ## Paragraphs, Headers, Blockquotes ##
 

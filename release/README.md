@@ -32,7 +32,7 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 ```
 *Note: you have to delete all comments after the comma*
 
-6. use Markdown to write the page of index in `articles/index.json`
+6. use Markdown to write the page of index in `articles/index.md`
 
 7. `git add .` -> `git commit -m'index'` -> `git push`
 

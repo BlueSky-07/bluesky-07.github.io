@@ -1,6 +1,6 @@
 # iHint-Pages
 
-`release 0.5`
+`release 0.6`
 
 ## get your own github.io with iHint-Pages
 
@@ -66,6 +66,12 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 ## ChangeLog
 
+#### 2018/11/8 v0.6
+
+**CHANGE**
+1. set max-width as 1080px
+
+----
 #### 2018/10/11 v0.5
 
 **CHANGE**

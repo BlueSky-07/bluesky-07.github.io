@@ -1,7 +1,7 @@
 /**
  * iHint-Pages Style Sheet
  * @BlueSky
- * Version Alpha, 0.5
+ * Version Alpha, 0.6
  * https://github.com/BlueSky-07/bluesky-07.github.io
  */
 
@@ -25,6 +25,11 @@ body {
   color: #aaa;
   height: 10em;
   user-select: none;
+}
+
+.article-container {
+  max-width: 1080px;
+  margin: auto;
 }
 
 .article-container .header-container {

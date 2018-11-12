@@ -235,7 +235,7 @@ const initElement = (element, raw = '', initElement = '') => {
 
 该代码定义了一个`Parser`对象，这个对象负责将 **BSXml** 语法转换成上述的 `BSElement` 对象。它的工作流程是这样的：
 
-![基础流程](https://i.loli.net/2018/09/07/5b91e1cfdd9d1.jpg)
+![基础流程](https://i.loli.net/2018/11/12/5be8f6c4a3a84.jpg)
 
 `initElement()`方法用于处理与标签名在同一行的属性，这里处理了所有标签的`id` `class`属性和 **a 标签** 的`href` `target`属性。在实例化`Parser`的时候可以将自定义的标签初始化方法传入，实现对于 **BSXml** 语法的定制。
 
@@ -287,7 +287,7 @@ compile(dataset = {}) {
 
   // set attributes
   if (line.startsWith('~')) {
-    const [key, ...value] = line.slice(1).split(' ')  .filter(i => i.length > 0)
+    const [key, ...value] = line.slice(1).split(' ').filter(i => i.length > 0)
     child.props[key] = value.join(' ')
     continue
   }

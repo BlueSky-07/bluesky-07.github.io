@@ -16,25 +16,23 @@ class BSElement {
     this.props = props
     this.children = children
   }
-  
+
   compile() {
     const element = document.createElement(this.tagName)
-    
+
     Object.entries(this.props).forEach(([key, value]) => {
       if (value) element.setAttribute(key, value)
     })
-    
+
     this.children.forEach(
-        child => {
-          const childElement = (child instanceof BSElement)
-              ? child.compile()
-              : document.createTextNode(child)
-          element.appendChild(childElement)
-        })
-    
+      child => {
+        const childElement = (child instanceof BSElement) ? child.compile() : document.createTextNode(child)
+        element.appendChild(childElement)
+      })
+
     return element
   }
-  
+
   static create(text = '') {
     const tagName = text.trim().split(' ')[0]
     if (tagName.length === 0) {
@@ -46,27 +44,33 @@ class BSElement {
       return text.trim()
     }
   }
-  
+
   static createEventMark(eventName = '', functionName = '') {
     if (HTMLEvents.has(eventName)) {
-      return new BSElement('BSXml-Event', {eventName, functionName})
+      return new BSElement('BSXml-Event', {
+        eventName, functionName
+      })
     } else {
       throw new Error(`invalid event name ${eventName}`)
     }
   }
-  
+
   static createInputMark() {
     return new BSElement('BSXml-Input')
   }
-  
+
   static createComponentMark(component, name, args) {
-    return new BSElement('BSXml-Component', {component, name, args})
+    return new BSElement('BSXml-Component', {
+      component, name, args
+    })
   }
-  
+
   static createComponentBlockMark(hash) {
-    return new BSElement('bsxc', {hash})
+    return new BSElement('bsxc', {
+      hash
+    })
   }
-  
+
   static createStyleBlock(styles) {
     const style = new BSElement('style')
     style.children.push(styles)
@@ -130,13 +134,15 @@ const HTMLEvents = new Set([
 // =============================================================================
 
 class Parser {
-  constructor(template = '', {initElement = ''} = {}) {
+  constructor(template = '', {
+    initElement = ''
+  } = {}) {
     Object.defineProperty(this, 'template', {
       configurable: false,
-      get:() => {
+      get: () => {
         return this.lines.join('\n')
       },
-      set:template => {
+      set: template => {
         if (Array.isArray(template)) {
           this.lines = template
         } else {
@@ -151,96 +157,96 @@ class Parser {
       this.initElement = ''
     }
   }
-  
+
   compile(dataset = {}) {
     let child = BSElement.create('vdRoot')
     const parents = []
-    
+
     for (let i = 0; i < this.lines.length; i++) {
       let line = this.lines[i].trim()
-      
+
       // drop comments
       if (
-          line.startsWith('//') ||
-          (line.startsWith('/*') && line.endsWith('*/'))
+        line.startsWith('//') ||
+        (line.startsWith('/*') && line.endsWith('*/'))
       ) {
         continue
       }
-      
+
       // convert $data to dataset[data]
       line = line.replace(
-          /{{[^}]*}}/g,
-          reg => reg.replace(/\$/g, 'dataset.')
+        /{{[^}]*}}/g,
+        reg => reg.replace(/\$/g, 'dataset.')
       )
-      
+
       // condition statement
       if (line.includes('@if')) {
         const conditionTemplate = new ConditionParser(line, this.lines, i)
         conditionTemplate.compile(dataset).forEach(
-            element => {
-              child.children.push(element)
-            }
+          element => {
+            child.children.push(element)
+          }
         )
         i += conditionTemplate.lines.length + 1
         continue
       }
-      
+
       // loop statement
       if (line.includes('@for')) {
         const loopTemplate = new LoopParser(line, this.lines, i)
         loopTemplate.compile(dataset).forEach(
-            element => {
-              child.children.push(element)
-            }
+          element => {
+            child.children.push(element)
+          }
         )
         i += loopTemplate.lines.length + 1
         continue
       }
-      
-      
+
+
       // read data from dataset
       line = line.replace(
-          /{{[^}]*}}/g,
-          reg => {
-            reg = reg.slice(2, -2)
-            try {
-              return eval(reg)
-            } catch (e) {
-              throw new Error(`cannot calculate the result of ${reg.replace(/dataset[.]/g, '$')}`)
-            }
-          })
-      
-      
+        /{{[^}]*}}/g,
+        reg => {
+          reg = reg.slice(2, -2)
+          try {
+            return eval(reg)
+          } catch (e) {
+            throw new Error(`cannot calculate the result of ${reg.replace(/dataset[.]/g, '$')}`)
+          }
+        })
+
+
       // Component
       if (line.startsWith('@')) {
         const [component, name, ...args] = line.slice(1).split(' ').filter(i => i.length > 0)
         child.children.push(BSElement.createComponentMark(component, name, args.join(' ')))
         continue
       }
-      
-      
+
+
       // set attributes
       if (line.startsWith('~')) {
         const [key, ...value] = line.slice(1).split(' ').filter(i => i.length > 0)
         child.props[key] = value.join(' ')
         continue
       }
-      
+
       // mark event
       if (line.startsWith('!')) {
         const [eventName, functionName] = line.slice(1).split(' ').filter(i => i.length > 0)
         child.children.push(BSElement.createEventMark(eventName, functionName))
         continue
       }
-      
+
       // create element
       const element = BSElement.create(line)
-      
+
       // mark input and textarea
       if (element.tagName === 'input' || element.tagName === 'textarea') {
         child.children.push(BSElement.createInputMark())
       }
-      
+
       if (line.endsWith('{') && !line.endsWith('{{')) {
         parents.push(child)
         child = element
@@ -269,7 +275,7 @@ class ConditionParser extends Parser {
     }
     this.definition = definition
   }
-  
+
   compile(dataset = {}) {
     const conditionTargetName = this.definition.match(/@if\({{[^}]*}}\)/g)[0].slice(4, -1).slice(2, -2)
     let conditionTarget = null
@@ -281,11 +287,11 @@ class ConditionParser extends Parser {
     const elements = []
     if (conditionTarget) {
       super.compile(
-          dataset
+        dataset
       ).children.forEach(
-          element => {
-            elements.push(element)
-          }
+        element => {
+          elements.push(element)
+        }
       )
     }
     return elements
@@ -301,7 +307,7 @@ class LoopParser extends Parser {
     }
     this.definition = definition
   }
-  
+
   compile(dataset = {}) {
     const loopTargetName = this.definition.match(/@for\({{[^}]*}}\)/g)[0].slice(5, -1).slice(2, -2)
     let loopTarget = null
@@ -316,15 +322,15 @@ class LoopParser extends Parser {
     const elements = []
     for (let index = 0; index < loopTarget.length; index++) {
       super.compile(
-          Object.assign({},
-              dataset, {
-                index, item: loopTarget[index]
-              }
-          )
-      ).children.forEach(
-          element => {
-            elements.push(element)
+        Object.assign({},
+          dataset, {
+            index, item: loopTarget[index]
           }
+        )
+      ).children.forEach(
+        element => {
+          elements.push(element)
+        }
       )
     }
     return elements
@@ -334,7 +340,8 @@ class LoopParser extends Parser {
 const getTemplateOfBlock = (indexOfCurrent = -1, lines = []) => {
   const template = []
   const countOfBrackets = {
-    left: 0, right: 0
+    left: 0,
+    right: 0
   }
   for (let i = indexOfCurrent + 1; i < lines.length; i++) {
     const line = lines[i].trim()
@@ -379,88 +386,87 @@ const initElement = (element, raw = '', initElement = '') => {
 class Renderer {
   constructor(parser, {
     dataset = {},
-    functions = {}
+      functions = {}
   } = {}) {
     if (parser instanceof Parser) {
       this.parser = parser
     } else {
       throw new Error('parser should be an instance of Parser')
     }
-    
+
     this.functions = functions
     this.dataset = dataset
     this.inputs = {}
     this._inputs_ = new Map()
     this.component = null
   }
-  
+
   render() {
     const vdRoot = this.parser.compile(this.dataset)
     const domRoot = vdRoot.compile()
     const fragment = document.createDocumentFragment()
-    
-    while(domRoot.childNodes[0]) {
+
+    while (domRoot.childNodes[0]) {
       fragment.append(domRoot.childNodes[0])
     }
-    
+
     // register events
     new Array().forEach.call(
-        fragment.querySelectorAll('BSXml-Event'),
-        mark => {
-          const target = mark.parentNode
-          const eventName = mark.getAttribute('eventName')
-          const functionName = mark.getAttribute('functionName')
-          if (Object.keys(this.functions).includes(functionName)) {
-            target.addEventListener(
-                eventName,
-                () => {
-                  this.functions[functionName].call(
-                      this.functions, {
-                        event: window.event,
-                        target,
-                        dataset: this.dataset,
-                        inputs: this.inputs,
-                        component: this.component,
-                        $this: this.component
-                      })
-                }
-            )
-            mark.remove()
-          } else {
-            throw new Error(`cannot find a function named ${functionName}`)
-          }
+      fragment.querySelectorAll('BSXml-Event'),
+      mark => {
+        const target = mark.parentNode
+        const eventName = mark.getAttribute('eventName')
+        const functionName = mark.getAttribute('functionName')
+        if (Object.keys(this.functions).includes(functionName)) {
+          target.addEventListener(
+            eventName, () => {
+              this.functions[functionName].call(
+                this.functions, {
+                  event: window.event,
+                  target,
+                  dataset: this.dataset,
+                  inputs: this.inputs,
+                  component: this.component,
+                  $this: this.component
+                })
+            }
+          )
+          mark.remove()
+        } else {
+          throw new Error(`cannot find a function named ${functionName}`)
         }
+      }
     )
-    
+
     // register inputs
     new Array().forEach.call(
-        fragment.querySelectorAll('BSXml-Input'),
-        mark => {
-          const target = mark.nextElementSibling
-          const hash = uuid()
-          const inputName = target.getAttribute('dict') || hash
-          Object.defineProperty(
-              this.inputs,
-              inputName, {
-                configurable: false,
-                enumerable: true,
-                get: () => {
-                  return this._inputs_.get(hash).value
-                },
-                set: value => {
-                  this._inputs_.get(hash).value = value
-                }
-              }
-          )
-          this._inputs_.set(hash, target)
-          mark.remove()
-        }
+      fragment.querySelectorAll('BSXml-Input'),
+      mark => {
+        const target = mark.nextElementSibling
+        const hash = uuid()
+        const inputName = target.getAttribute('dict') || hash
+        Object.defineProperty(
+          this.inputs,
+          inputName, {
+            configurable: false,
+            enumerable: true,
+            get: () => {
+              return this._inputs_.get(hash).value
+            },
+            set: value => {
+              this._inputs_.get(hash).value = value
+            }
+          }
+        )
+        this._inputs_.set(hash, target)
+        mark.remove()
+      }
     )
     return fragment
   }
 }
 
-DocumentFragment.prototype.paint = function (target, type = 'before') {
+DocumentFragment.prototype.paint = function(target, type = 'before') {
   if (!(target instanceof HTMLElement)) {
     throw new Error('target should be an instance of HTMLElement')
   }
@@ -495,23 +501,23 @@ DocumentFragment.prototype.paint = function (target, type = 'before') {
 
 class BSXml {
   static start(
-      templateNodes = [], {
-        dataset = {},
+    templateNodes = [], {
+      dataset = {},
         functions = {},
         init = new Function(),
         next = new Function()
-      } = {}) {
-    
+    } = {}) {
+
     if (init instanceof Function) {
       init()
     } else {
       throw new Error('init should be a function')
     }
-    
+
     if (!(next instanceof Function)) {
       throw new Error('next should be a function')
     }
-    
+
     if (!Array.isArray(templateNodes)) {
       throw new Error('templateNodes should be an array')
     } else {
@@ -519,7 +525,7 @@ class BSXml {
         // user's next function
         next()
       }
-      
+
       // generate NEXT.next() function
       // real next() will be called after all templateNodes have been showRendered
       for (let i = 0; i < templateNodes.length; i++) {
@@ -534,60 +540,59 @@ class BSXml {
           }
         }
       }
-      
+
       new Array().forEach.call(
-          templateNodes,
-          async templateNode => {
-            if (templateNode) {
-              let realTemplateNode = null
-              
-              // detect templateNode is string (name of BSX) or HTMLElement (node of BSX)
-              if (templateNode instanceof HTMLElement) {
-                if (templateNode.tagName === 'BSX') {
-                  realTemplateNode = templateNode
-                } else {
-                  throw new Error(`found a node whose tagName is not BSX`)
-                }
+        templateNodes,
+        async templateNode => {
+          if (templateNode) {
+            let realTemplateNode = null
+
+            // detect templateNode is string (name of BSX) or HTMLElement (node of BSX)
+            if (templateNode instanceof HTMLElement) {
+              if (templateNode.tagName === 'BSX') {
+                realTemplateNode = templateNode
               } else {
-                try {
-                  realTemplateNode = document.querySelector(`BSX[name=${templateNode.trim()}]`)
-                } catch (e) {
-                }
-                if (realTemplateNode === null) {
-                  throw new Error(`cannot find a node named ${templateNode}`)
-                }
+                throw new Error(`found a node whose tagName is not BSX`)
               }
-              
-              // fetch template (.bsx file)
-              await TmplLoader.load(realTemplateNode)
-              
-              // fetch dataset
-              let realDataset = await DataLoader.load(realTemplateNode) || {}
-              
-              run(realTemplateNode.innerHTML, realTemplateNode, {
-                dataset: Object.assign(
-                    realDataset,
-                    dataset
-                ),
-                functions,
-                next: () => {
-                  NEXT.next()
-                }
-              })
+            } else {
+              try {
+                realTemplateNode = document.querySelector(`BSX[name=${templateNode.trim()}]`)
+              } catch (e) {}
+              if (realTemplateNode === null) {
+                throw new Error(`cannot find a node named ${templateNode}`)
+              }
             }
-          })
+
+            // fetch template (.bsx file)
+            await TmplLoader.load(realTemplateNode)
+
+            // fetch dataset
+            let realDataset = await DataLoader.load(realTemplateNode) || {}
+
+            run(realTemplateNode.innerHTML, realTemplateNode, {
+              dataset: Object.assign(
+                realDataset,
+                dataset
+              ),
+              functions,
+              next: () => {
+                NEXT.next()
+              }
+            })
+          }
+        })
     }
   }
 }
 
 const run = (
-    template, target, {
-      dataset = {},
+  template, target, {
+    dataset = {},
       functions = {},
       init = new Function(),
       next = new Function()
-    } = {}) => {
-  
+  } = {}) => {
+
   const parser = new Parser(template)
   const renderer = new Renderer(parser, {
     dataset, functions

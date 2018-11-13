@@ -2,36 +2,27 @@
 
 在 Github 上查看 [源码](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSFetch.js) [测试](https://github.com/BlueSky-07/ES-6/tree/master/test/BSFetch)
 
-`Browser-Simple-Fetch` `v1.1` 
+`Browser-Simple-Fetch` `v1.1`
 
 这是一个关于`fetch(...)`的简单封装。该工具仅用作学习用途，如需在实际环境中使用还需要更多的测试与完善。
-
-**功能包含**
-
-- `BSFetch.head(...)`
-- `BSFetch.get(...)`
-- `BSFetch.post(...)`
-- `BSFetch.put(...)`
-- `BSFetch.delete(...)`
-- `BSFetch.patch(...)`
-- `BSFetch.options(...)`
-- `BSFetch.fetch(...)`
 
 ----
 
 ## 1. HTTP 请求
 
-**参考资料**
-> 1. [HTTP](https://developer.mozilla.org/zh-CN/docs/Web/HTTP) - <small>developer.mozilla.org</small>
-> 1. [HTTP 请求方法](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods) - <small>developer.mozilla.org</small>
-> 1. [HTTP 请求头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers) - <small>developer.mozilla.org</small>
-> 1. [HTTP 响应代码](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status) - <small>developer.mozilla.org</small>
+#### 参考资料
+
+> + [HTTP](https://developer.mozilla.org/zh-CN/docs/Web/HTTP) - <small>developer.mozilla.org</small>
+> + [HTTP 请求方法](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods) - <small>developer.mozilla.org</small>
+> + [HTTP 请求头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers) - <small>developer.mozilla.org</small>
+> + [HTTP 响应代码](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status) - <small>developer.mozilla.org</small>
 
 经过测试，浏览器的`fetch(...)`支持以下 HTTP 请求方法的请求：
 
 `head` `get` `post` `put` `delete` `patch` `options`
 
-**测试代码**
+#### 测试代码
+
 ```js
 (() => {
 	const HTTPMethods = [
@@ -46,17 +37,20 @@
 })()
 ```
 
-**运行结果**
+#### 运行结果
+
 ![运行结果](https://i.loli.net/2018/08/14/5b72447492c51.png)
 
 所以，**BSFetch** 将上述支持的请求方式全部封装其中。
 
 ## 2. Request 包装
 
-**参考资料**
+#### 参考资料
+
 > 1. [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) - <small>developer.mozilla.org</small>
 
 为了简化在实际使用场景时的操作，即每次不需要自己传入一个`Request`对象，取而代之的是由一些常用的参数组成的对象，可以这样封装：
+
 ```js
 class BSRequest {
   constructor(url = '', debug = false) {
@@ -86,27 +80,30 @@ class BSRequest {
 }
 ```
 
-**参数说明**
-1. `url`是一个必要参数，表示请求目标地址。
-1. `?debug`是一个可选参数，表示是否输入实际请求`Request`对象及原始响应`Response`对象。
-1. `config`是一个对象，里面有 4 个常用的属性：
-> 1.`body`：请求携带的数据部分，当请求头中`Content-Type`值被设为`application/x-www-form-urlencoded`时会使用。
->
-> 2.`credentials`：是否在跨域请求的情况下向其他域发送身份信息（包含**cookie**），有 3 个合法值：
->>2.1`omit`：从不发送。
->>
->>2.2`same-origin`：默认值，只有当 **URL**与响应脚本同源才发送。
->>
->>2.3`include`： 不论是不是跨域的请求，总是发送。
->
-> 3.`headers`：请求头，是一个`Headers`实例。
->
-> 4.`method`：请求方法。
-1. `request()`方法返回一个`Request`对象，该对象是最终被`fetch()`使用的参数。
+| 参数方法 | 说明                                                                |
+|-----------|---------------------------------------------------------------------|
+| url       | 必要参数，表示请求目标地址                                          |
+| debug?    | 可选参数，表示是否输入实际请求`Request`对象及原始响应`Response`对象 |
+| config    | 一个对象，里面有 4 个常用的属性，见下表                             |
+| request() | 返回一个`Request`对象，该对象是最终被`fetch()`使用的参数            |
+
+| config属性  | 说明                                                                                            |
+|-------------|-------------------------------------------------------------------------------------------------|
+| body        | 请求携带的数据部分，当请求头中`Content-Type`值被设为`application/x-www-form-urlencoded`时会使用 |
+| credentials | 是否在跨域请求的情况下向其他域发送身份信息（包含**cookie**），有 3 个合法值，见下表             |
+| headers     | 请求头，是一个`Headers`实例                                                                     |
+| method      | 请求方法                                                                                        |
+
+| credentials 合法值 	| 操作                                       	|
+|--------------------	|--------------------------------------------	|
+| omit               	| 从不发送                                   	|
+| same-origin        	| 默认值，只有当 **URL**与响应脚本同源才发送 	|
+| include            	| 不论是不是跨域的请求，总是发送             	|
 
 ## 3. doRequest() 方法
 
 实现如何将上面的`BSFetch`真正传给`fetch()`使用：
+
 ```js
 const doRequest = (request = new BSRequest()) => {
   if (request.debug) console.log(request.info(), request.request())
@@ -156,10 +153,11 @@ const doRequest = (request = new BSRequest()) => {
 }
 ```
 
-**说明**
+#### 说明
+
 1. 最终返回值是一个`Promise`实例，使用者可根据`fetch()`的返回值或出错的异常决定如何处理。
 1. 除非设置`BSFetch`实例的`responseType`属性为`RESPONSE`或`STATUS`，否则将根据原始响应的`Response.ok`判断是否完成请求，同时根据其设置的`responseType`去决定数据如何处理后返回。
-1. 无法完成请求时抛出的异常中含有`response`属性，为此次失败请求的原始响应`Response`对象
+1. 无法完成请求时抛出的异常中含有`response`属性，为此次失败请求的原始响应`Response`对象。
 
 ## 4. BSFetch 对象
 
@@ -275,50 +273,43 @@ const ContentTypes = {
 export default BSFetch
 ```
 
-**参数说明**
 
-1.`url`是一个必要参数，表示请求目标地址。
+| 参数     | 说明               |
+|----------|-------------------|
+| url      | 必要参数，表示请求目标地址 |
+| method   | 必要参数，表示请求方法。若传入的值不合法，将会被设为`GET` |
+| data?    | 可选参数，表示此次请求携带的数据。传入值应该为一个由`{key: value}`组成的对象（**value**的深度必须为 1），或者是前者类型对象的 **JSON** 形式字符串，或者是`FormData`实例（一般用于文件传输），数据会根据数据传输方式自动转换。默认值为`{}` |
+| reqtype? | 可选参数，表示数据传输的方式，即最终请求头的`Content-Type`属性，有以下 3 个合法值，见下表，默认值为`''` |
+| restype? | 可选参数，表示对于响应`response.ok === true`时的响应主体如何处理，有以下 8 个合法值，见下表，默认为`'json'` |
+| cookies? | 可选参数，表示是否在跨域请求的情况下向其他域发送身份信息（包含**cookie**），有以下 3 种合法值，见下表，默认为 `''`  |
+| headers? | 可选参数，表示请求头，传入值应该为一个由`{key: value}`组成的对象，默认为`{}` |
+| debug?   | 可选参数，表示是否在控制台打印原始请求`Request`和原始响应`Response` |
 
-2.`method`是一个必要参数，表示请求方法。若传入的值不合法，将会被设为`GET`。
+| reqtype参数      | 说明                                                                                             |
+|------------------|--------------------------------------------------------------------------------------------------|
+| json             | 表示`application/json`，最终`data`会被转换成 **JSON** 字符串                                     |
+| formdata         | 表示`multipart/form-data`，最终`data`会被转换成`FormData`实例                                    |
+| `''`或其他任意值   | 表示`application/x-www-form-urlencoded`，最终`data`会被转换成`key1=value1&key2=value2`格式字符串 |
 
-3.`?data`是一个可选参数，表示此次请求携带的数据。传入值应该为一个由`{key: value}`组成的对象（**value**的深度必须为 1），或者是前者类型对象的 **JSON** 形式字符串，或者是`FormData`实例（一般用于文件传输），数据会根据数据传输方式自动转换。默认值为`{}`。
+| restype参数 | 说明                                                                  |
+|-------------|-----------------------------------------------------------------------|
+| json        | 会识别成 **JSON** 字符串，并将其解析成对象返回                        |
+| text        | 会识别成文本，返回响应主体文本                                        |
+| blob        | 会识别成`Blob`对象，将其转换成`Blob`实例后返回                        |
+| formdata    | 会被识别成`FormData`对象，将其转换成`FormData`实例后返回              |
+| arraybuffer | 会被识别成`ArrayBuffer`对象，将其转换成`ArrayBuffer`实例后返回        |
+| headers     | 直接返回响应头，即原始响应`response.headers`对象，为一个`Headers`实例 |
+| response    | **忽略`response.ok`值**，直接返回原始响应`Response`实例               |
+| status      | **忽略`response.ok`值**，直接返回原始响应`response.status`值          |
 
-4.`?reqtype`是一个可选参数，表示数据传输的方式，即最终请求头的`Content-Type`属性，有以下 3 个合法值，默认值为`''`：
-> 1.`'json'`：表示`application/json`，最终`data`会被转换成 **JSON** 字符串。
->
-> 2.`'formdata'`：表示`multipart/form-data`，最终`data`会被转换成`FormData`实例。
->
-> 3.`''`或其他任意值：表示`application/x-www-form-urlencoded`，最终`data`会被转换成`key1=value1&key2=value2`格式字符串。
+| cookie参数                                | 说明                |
+|-------------------------------------------|--------------------|
+| `''` `'same'` `'same-origin'` `'default'` | 最终请求`Request`的`credentials`属性将会被设为`'same-origin'`，表示只有当 **URL**与响应脚本同源才发送 |
+| `true` `'true'` `'include'`           | 最终请求`Request`的`credentials`属性将会被设为`'include'`，表示不论是不是跨域的请求，总是发送 |
+| `false` `'false'` `'omit'`            | 最终请求`Request`的`credentials`属性将会被设为`'omit'`，表示从不发送 |
 
-5.`?restype`是一个可选参数，表示对于响应`response.ok === true`时的响应主体如何处理，有以下 8 个合法值，默认为`'json'`：
-> 1.`'json'`：会识别成 **JSON** 字符串，并将其解析成对象返回。
->
-> 2.`'text'`：会识别成文本，返回响应主体文本。
->
-> 3.`'blob'`：会识别成`Blob`对象，将其转换成`Blob`实例后返回。
->
-> 4.`'formdata'`：会被识别成`FormData`对象，将其转换成`FormData`实例后返回。
->
-> 5.`'arraybuffer'`：会被识别成`ArrayBuffer`对象，将其转换成`ArrayBuffer`实例后返回。
->
-> 6.`'headers'`：直接返回响应头，即原始响应`response.headers`对象，为一个`Headers`实例。
->
-> 7.`'response'`：**忽略`response.ok`值**，直接返回原始响应`Response`实例。
->
-> 8.`'status'`：**忽略`response.ok`值**，直接返回原始响应`response.status`值。
+#### 调用示例
 
-6.`?cookies`是一个可选参数，表示是否在跨域请求的情况下向其他域发送身份信息（包含**cookie**），有以下 3 种合法值，默认为 `''`：
-> 1.`''` `'same'` `'same-origin'` `'default'`：最终请求`Request`的`credentials`属性将会被设为`'same-origin'`，表示只有当 **URL**与响应脚本同源才发送。
->
-> 2.`true` `'true'` `'include'`：最终请求`Request`的`credentials`属性将会被设为`'include'`，表示不论是不是跨域的请求，总是发送。
->
-> 3.`false` `'false'` `'omit'`：最终请求`Request`的`credentials`属性将会被设为`'omit'`，表示从不发送。
-
-7.`?headers`是一个可选参数，表示请求头，传入值应该为一个由`{key: value}`组成的对象，默认为`{}`。
-
-8.`?debug`是一个可选参数，表示是否在控制台打印原始请求`Request`和原始响应`Response`
-
-**调用示例**
 ```js
 import BSFetch from 'https://static.ihint.me/BSFetch.js'
 
@@ -332,6 +323,7 @@ BSFetch.fetch('/get', 'get').then(json => {
 #### 5.1 方法简写
 
 由于 `BSFetch.fetch(url, method, {?})` 的第 2 个参数值为枚举量，所以可以全部单独提出来作为一个方法，以方便简化调用：
+
 ```js
 class BSFetch() {
   static async head(url = '', {data = {}, reqtype = '', restype = 'headers', cookies = '', headers = {}, debug = false} = {}) {
@@ -366,7 +358,7 @@ class BSFetch() {
 }
 ```
 
-**调用示例**
+#### 调用示例
 
 ```js
 import BSFetch from 'https://static.ihint.me/BSFetch.js'
@@ -391,6 +383,7 @@ BSFetch.head('/head').then(headers => {
 #### 5.2 自动添加 API 接口前缀
 
 有的接口可能前缀路径相同，只有最后路径不同，对此可以优化：
+
 ```js
 class BSFetch {
   constructor({basepath = ''} = {}) {
@@ -440,13 +433,14 @@ class BSFetch {
 }
 ```
 
-**参数说明**
-1. `?bathpath`是一个可选参数，表示该实例化对象后续所有请求自动添加的前缀路径，若为空会被设为`location.hostname`。
+| 参数      | 说明 |
+|-----------|------|
+| bathpath? | 可选参数，表示该实例化对象后续所有请求自动添加的前缀路径，若为空会被设为`location.hostname` |
 
-**注意**
-以上方法全部是非静态方法，需要实例化才能使用。
+**注意**：以上方法全部是非静态方法，需要实例化才能使用。
 
-**调用示例**
+#### 调用示例
+
 ```js
 import BSFetch from 'https://static.ihint.me/BSFetch.js'
 
@@ -476,7 +470,8 @@ class BSFetch {
 }
 ```
 
-**调用示例**
+#### 调用示例
+
 ```html
 <button onclick="showPic()">showPic</button>
 <img id="pic">
@@ -504,4 +499,3 @@ class BSFetch {
   }
 </script>
 ```
-

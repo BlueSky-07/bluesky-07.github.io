@@ -1,6 +1,6 @@
 # iHint-Pages
 
-`release 0.6`
+`release 0.7`
 
 ## get your own github.io with iHint-Pages
 
@@ -66,6 +66,18 @@ You can easily build your own blog with **iHint-Pages**, just follow the steps b
 
 ## ChangeLog
 
+#### 2018/11/13 v0.7
+
+**CHANGE**
+1. remove header animation on Microsoft Edge
+1. style modified for better reading experience
+1. load raw md for readers with IE 9+
+1. add back to top/index button at the end of article
+
+**BUG FIX**
+<del>1. Microsoft Edge will keep a empty block on the top when scroll down</del>
+
+----
 #### 2018/11/8 v0.6
 
 **CHANGE**

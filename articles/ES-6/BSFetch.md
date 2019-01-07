@@ -2,7 +2,7 @@
 
 在 Github 上查看 [源码](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSFetch.js) [测试](https://github.com/BlueSky-07/ES-6/tree/master/test/BSFetch)
 
-`Browser-Simple-Fetch` `v1.1`
+`Browser-Simple-Fetch` `v1.2`
 
 这是一个关于`fetch(...)`的简单封装。该工具仅用作学习用途，如需在实际环境中使用还需要更多的测试与完善。
 
@@ -57,7 +57,7 @@ class BSRequest {
     this.url = url
     this.config = {}
     this.debug = debug
-    
+
     for (const key of ['body', 'credentials', 'headers', 'method']) {
       Object.defineProperty(this, key, {
         get() {
@@ -69,11 +69,11 @@ class BSRequest {
       })
     }
   }
-  
+
   info() {
     return `${this.method} '${this.url}':`
   }
-  
+
   request() {
     return new Request(this.url, this.config)
   }
@@ -171,10 +171,10 @@ class BSFetch {
     if (typeof url !== 'string' || typeof method !== 'string') {
       throw new Error('BSFetch.fetch(url, method, {?...}): url/method must be a string')
     }
-    
+
     const request = new BSRequest(url, debug)
     request.headers = new Headers(headers)
-    
+
     method = method.toLowerCase()
     if (HttpMethods.has(method)) {
       request.method = method.toUpperCase()
@@ -186,11 +186,11 @@ class BSFetch {
         restype = restype === 'response' ? restype : 'headers'
       case 'GET':
         if (data instanceof FormData) {
-          request.url += '?' + BSData.object_to_body(BSData.formdata_to_object(data))
+          request.url += '?' + BSData.object2Body(BSData.formdata2Object(data))
         } else if (Object.keys(data).length > 0) {
-          request.url += '?' + BSData.object_to_body(data)
+          request.url += '?' + BSData.object2Body(data)
         } else if (typeof data === 'string' && data.length > 0) {
-          request.url += '?' + BSData.object_to_body(BSData.json_to_object(data))
+          request.url += '?' + BSData.object2Body(BSData.json2Object(data))
         }
         break
       case 'PUT':
@@ -202,9 +202,9 @@ class BSFetch {
           case 'json':
             request.headers.set('Content-Type', ContentTypes.JSON)
             if (data instanceof FormData) {
-              request.body = BSData.object_to_json(BSData.formdata_to_object(data))
+              request.body = BSData.object2Json(BSData.formdata2Object(data))
             } else if (Object.keys(data).length > 0) {
-              request.body = BSData.object_to_json(data)
+              request.body = BSData.object2Json(data)
             } else if (typeof data === 'string' && data.length > 0) {
               request.body = data
             }
@@ -214,19 +214,19 @@ class BSFetch {
             if (data instanceof FormData) {
               request.body = data
             } else if (Object.keys(data).length > 0) {
-              request.body = BSData.object_to_formdata(data)
+              request.body = BSData.object2Formdata(data)
             } else if (typeof data === 'string' && data.length > 0) {
-              request.body = BSData.object_to_formdata(BSData.json_to_object(data))
+              request.body = BSData.object2Formdata(BSData.json2Object(data))
             }
             break
           default:
             request.headers.set('Content-Type', ContentTypes.FORM)
             if (data instanceof FormData) {
-              request.body = BSData.object_to_body(BSData.formdata_to_object(data))
+              request.body = BSData.object2Body(BSData.formdata2Object(data))
             } else if (Object.keys(data).length > 0) {
-              request.body = BSData.object_to_body(data)
+              request.body = BSData.object2Body(data)
             } else if (typeof data === 'string' && data.length > 0) {
-              request.body = BSData.object_to_body(BSData.json_to_object(data))
+              request.body = BSData.object2Body(BSData.json2Object(data))
             }
         }
         break
@@ -234,14 +234,14 @@ class BSFetch {
         restype = restype === 'response' ? restype : 'headers'
         break
     }
-    
+
     restype = restype.toLowerCase()
     if (ResponseTypes.has(restype)) {
       request.responseType = restype.toUpperCase()
     } else {
       request.responseType = 'JSON'
     }
-    
+
     if (cookies === '' || cookies === 'same' || cookies === 'same-origin' || cookies === 'default') {
       // request.credentials = 'same-origin'
     } else if (cookies === true || cookies === 'true' || cookies === 'include') {
@@ -249,7 +249,7 @@ class BSFetch {
     } else if (cookies === false || cookies === 'false' || cookies === 'none') {
       request.credentials = 'omit'
     }
-    
+
     return doRequest(request)
   }
 }
@@ -265,7 +265,7 @@ const ResponseTypes = new Set([
 ])
 
 const ContentTypes = {
-  JSON: 'application/json; charset=utf-8 ',
+  JSON: 'application/json; charset=utf-8',
   FORM: 'application/x-www-form-urlencoded; charset=UTF-8',
   FORMDATA: 'multipart/form-data'
 }
@@ -327,34 +327,34 @@ BSFetch.fetch('/get', 'get').then(json => {
 ```js
 class BSFetch() {
   static async head(url = '', {data = {}, reqtype = '', restype = 'headers', cookies = '', headers = {}, debug = false} = {}) {
-    return this.fetch(url, 'HEAD', {data, reqtype, restype, cookies, headers, debug})
+    return BSFetch.fetch(url, 'HEAD', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   static async get(url = '', {data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false} = {}) {
-    return this.fetch(url, 'GET', {data, reqtype, restype, cookies, headers, debug})
+    return BSFetch.fetch(url, 'GET', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   static async post(url = '', {data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false} = {}) {
-    return this.fetch(url, 'POST', {data, reqtype, restype, cookies, headers, debug})
+    return BSFetch.fetch(url, 'POST', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   static async put(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
-    return this.fetch(url, 'PUT', {data, reqtype, restype, cookies, headers, debug})
+    return BSFetch.fetch(url, 'PUT', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   static async delete(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
-    return this.fetch(url, 'DELETE', {data, reqtype, restype, cookies, headers, debug})
+    return BSFetch.fetch(url, 'DELETE', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   static async patch(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
-    return this.fetch(url, 'PATCH', {data, reqtype, restype, cookies, headers, debug})
+    return BSFetch.fetch(url, 'PATCH', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   static async options(url = '', {headers = {}, cookies = '', debug = false}) {
-    return this.fetch(url, 'OPTIONS', {headers, cookies, debug})
-	}
-	
-	......
+    return BSFetch.fetch(url, 'OPTIONS', {headers, cookies, debug})
+  }
+
+  ......
 }
 ```
 
@@ -382,60 +382,60 @@ BSFetch.head('/head').then(headers => {
 
 #### 5.2 自动添加 API 接口前缀
 
-有的接口可能前缀路径相同，只有最后路径不同，对此可以优化：
+有的接口可能前缀路径相同，只有最后路径不同，对此可以增加统一补全前缀的非静态方法：
 
 ```js
 class BSFetch {
   constructor({basepath = ''} = {}) {
     this.basepath = basepath || location.hostname
   }
-  
+
   URL(request = '') {
     const basepath = this.basepath || location.hostname
     return `${this.basepath}${request}`
-	}
-	
+  }
+
   async head(url = '', {data = {}, reqtype = '', restype = 'headers', cookies = '', headers = {}, debug = false} = {}) {
     return BSFetch.fetch(this.URL(url), 'HEAD', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   async get(url = '', {data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false} = {}) {
     return BSFetch.fetch(this.URL(url), 'GET', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   async post(url = '', {data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false} = {}) {
     return BSFetch.fetch(this.URL(url), 'POST', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   async put(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
     return BSFetch.fetch(this.URL(url), 'PUT', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   async delete(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
     return BSFetch.fetch(this.URL(url), 'DELETE', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   async patch(url = '', {data = {}, reqtype = '', restype = 'status', cookies = '', headers = {}, debug = false} = {}) {
     return BSFetch.fetch(this.URL(url), 'PATCH', {data, reqtype, restype, cookies, headers, debug})
   }
-  
+
   async options(url = '', {headers = {}, cookies = '', debug = false}) {
     return BSFetch.fetch(this.URL(url), 'OPTIONS', {headers, cookies, debug})
   }
-  
+
   async fetch(url = '#', method = 'GET', {
     data = {}, reqtype = '', restype = 'json', cookies = '', headers = {}, debug = false
   } = {}) {
     return BSFetch.fetch(this.URL(url), method, {data, reqtype, restype, cookies, headers, debug})
   }
-	
+
 	......
 }
 ```
 
 | 参数      | 说明 |
 |-----------|------|
-| bathpath? | 可选参数，表示该实例化对象后续所有请求自动添加的前缀路径，若为空会被设为`location.hostname` |
+| basepath? | 可选参数，表示该实例化对象后续所有请求自动添加的前缀路径，若为空会被设为`location.hostname` |
 
 **注意**：以上方法全部是非静态方法，需要实例化才能使用。
 
@@ -465,7 +465,7 @@ class BSFetch {
   static global() {
     window.BSFetch = BSFetch
   }
-	
+
 	......
 }
 ```
@@ -476,9 +476,9 @@ class BSFetch {
 <button onclick="showPic()">showPic</button>
 <img id="pic">
 <script type="module">
-	// 需要一个注册模块来调用 BSFetch 的全局注册方法
+  // 需要一个注册模块来调用 BSFetch 的全局注册方法
   import BSFetch from 'https://static.ihint.me/BSFetch.js'
-  
+
   BSFetch.global()
 </script>
 <script>

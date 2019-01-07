@@ -30,7 +30,7 @@ BlueSky's ES 6
 
 ### [BSFetch](?BSFetch)
 
-`Browser-Simple-Fetch` `v1.1` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSFetch.js) 上查看源码</small>
+`Browser-Simple-Fetch` `v1.2` <small>在 [Github](https://github.com/BlueSky-07/ES-6/blob/master/modules/BSFetch.js) 上查看源码</small>
 
 一个关于`fetch(...)`的简单封装。
 
